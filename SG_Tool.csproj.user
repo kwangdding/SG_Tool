@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="CF_Tool\CF_Tool_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="CF_Tool\ServerPatch\CF_Patch_Live_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="CF_Tool\ServerPatch\CF_Patch_QA_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Email_Tool\Email_Tool_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Email_Tool\Target\Epic.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Email_Tool\Target\Load.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Email_Tool\Target\Outer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Ep7_Tool\EP7_Tool_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Ep7_Tool\ServerPatch\Ep7_Patch_Live_Form..cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="L9_Tool\AWS\EcsPatch_Live_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="L9_Tool\AWS\EcsPatch_QA_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="L9_Tool\FTP\DBUpload.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="L9_Tool\FTP\JsonUpdate.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="L9_Tool\L9_Tool_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Login\Login_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Log\SystemLog_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="OP_Tool\CDN\OP_CDN_Purge.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="OP_Tool\DB\OP_DB_Export_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="OP_Tool\OP_Tool_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="OP_Tool\ServerPatch\OP_Patch_Live_Form..cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="OP_Tool\ServerPatch\OP_Patch_QA_Form.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Progress_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
