@@ -84,3 +84,7 @@
 /bin/Debug/net48/*.txt
 /bin/Release/net48/*.config
 /bin/Release/net48/*.txt
+/bin/Release/net48/L9/L9_LiveData.cfg
+/bin/Release/net48/L9/L9_Data.cfg
+/bin/Debug/net48/L9/L9_LiveData.cfg
+/bin/Debug/net48/L9/L9_Data.cfg
