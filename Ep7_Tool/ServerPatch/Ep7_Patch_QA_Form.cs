@@ -89,11 +89,8 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         FlowLayoutPanel m_checkBoxPanel = null!;
 
         string m_strServerPath = string.Empty; // 서버 목록 파일 경로
-        string m_strUsername = string.Empty;
-        string m_strPassword = string.Empty;
+        UserData m_userData = new UserData(string.Empty, string.Empty);
         const string PlaceholderText = "ex 20290214a";
-
-        static bool m_bConnect = false;
 
         readonly Dictionary<string, string> m_dicTagIp = new Dictionary<string, string>();
         Dictionary<EP7_CommandType, EP7Data> m_dicEP7Data = new Dictionary<EP7_CommandType, EP7Data>
@@ -215,7 +212,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
             this.Controls.Add(mainLayout);
 
-            SG_Common.LoadCredentials(m_txtLog, m_strUsername, m_strPassword);
+            m_userData = SG_Common.LoadCredentials(m_txtLog, EnProjectType.EP7);
             SetPatchData();
         }
 
@@ -281,7 +278,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             }
 
             m_checkBoxPanel.Refresh();
-            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_strUsername, m_strPassword, m_bConnect);
+            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_userData);
         }
 
         //===========================================================================================
@@ -305,7 +302,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         async void ServerUp_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버재시작", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "서버재시작", m_userData.IsConnect))
                 await ExecuteOnServersAsync("pullUp_common.sh", EnType.Command);
             LogMessage($"서버재시작 종료", 1);
 
@@ -316,14 +313,14 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         async void DockerCheck_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_userData.IsConnect))
                 await ExecuteOnServersAsync(@"sudo docker ps --format ""@{{.Image}}, {{.RunningFor}}""", EnType.Docker);
             LogMessage($"도커확인 종료", 1);
         }
 
         async void Rolling_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "롤링패치", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "롤링패치", m_userData.IsConnect))
                 await ExecuteOnServersAsync("pullUp_common.sh", EnType.Rolling);
             LogMessage($"롤링패치 종료", 1);
 
@@ -334,7 +331,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         void CDN_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "SVN 업로드 후 S3 업로드", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "SVN 업로드 후 S3 업로드", m_userData.IsConnect))
                 SVNUPdateAndUploadFileToS3();
 
             LogMessage($"SVN 업로드 후 S3 업로드 종료", 1);
@@ -354,9 +351,9 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 return;
             }
 
-            if (string.IsNullOrEmpty(m_strUsername) || string.IsNullOrEmpty(m_strPassword))
+            if (string.IsNullOrEmpty(m_userData.User) || string.IsNullOrEmpty(m_userData.Pass))
             {
-                LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_strUsername} {m_strPassword}");
+                LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_userData.User} {m_userData.Pass}");
                 return;
             }
 
@@ -447,7 +444,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 case EnType.Docker:
                     foreach (var server in m_dicTagIp)
                     {
-                        await SG_Common.CommandServersAsync(server.Value, scriptName, server.Key, m_txtLog, m_strUsername, m_strPassword, EnCommandType.Command);
+                        await SG_Common.CommandServersAsync(server.Value, scriptName, server.Key, m_txtLog, m_userData.User, m_userData.Pass, EnCommandType.Command);
                     }
                     break;
             }
@@ -455,7 +452,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         async Task ExecuteOnStartAsync(CommandData commandData)
         {
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, SG_Common.CommandServersAsync(commandData.Ip, commandData.Command, commandData.Tag, commandData.TextBox, m_strUsername, m_strPassword, EnCommandType.Scripts), commandData.Tag, commandData.Type.ToString());
+            await SG_Common.AwaitWithPeriodicLog(m_txtLog, SG_Common.CommandServersAsync(commandData.Ip, commandData.Command, commandData.Tag, commandData.TextBox, m_userData.User, m_userData.Pass, EnCommandType.Scripts), commandData.Tag, commandData.Type.ToString());
         }
 
         //===========================================================================================

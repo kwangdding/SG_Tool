@@ -15,6 +15,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SG_Tool
 {
+    public enum EnProjectType { EP7, L9, Email, CF, OP}
     public enum EP7_CommandType { Verinfo, Game, Battle, Log, Chan }
     public enum EP7_EnRegion { Asia, Europ, Global, Japan, Korea }
     public enum EcsDataEnum { front, auth, noti, op_api, op_front, log }
@@ -46,6 +47,31 @@ namespace SG_Tool
             m_strCluster = cluster;
             m_strService = service;
             m_nServicecount = servicecount;
+        }
+    }
+
+    public class UserData
+    {
+        public bool IsConnect { get; set; }
+        public bool IsCountdown { get; set; }
+        public string User { get; set; }
+        public string Pass { get; set; }
+        public UserData(string user, string pass)
+        {
+            User = user;
+            Pass = pass;
+            IsConnect = false;
+            IsCountdown = false;
+        }
+
+        public void SetConnect(bool isConnect)
+        {
+            IsConnect = isConnect;
+        }
+
+        public void SetCountdown(bool isCountdown)
+        {
+            IsCountdown = isCountdown;
         }
     }
 
@@ -194,16 +220,26 @@ namespace SG_Tool
             return false;
         }
 
-        public static void LoadCredentials(TextBox txtLog, string strUser, string strPass)
+        public static UserData LoadCredentials(TextBox txtLog, EnProjectType enProjectType)
         {
-            string credentialsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EP7", "EP7_Serverdata.cfg");
+            string credentialsPath = string.Empty;
+            UserData userData = null!;
+            switch (enProjectType)
+            {
+                case EnProjectType.OP:
+                    credentialsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OP", "OP_Serverdata.cfg");
+                    break;
+                case EnProjectType.EP7:
+                    credentialsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EP7", "EP7_Serverdata.cfg");
+                    break;
+            }
+
             if (File.Exists(credentialsPath))
             {
                 var lines = File.ReadAllLines(credentialsPath);
                 if (lines.Length >= 2)
                 {
-                    strUser = lines[0].Trim();
-                    strPass = lines[1].Trim();
+                    userData = new UserData(lines[0].Trim(), lines[1].Trim());
                 }
                 else
                 {
@@ -214,19 +250,20 @@ namespace SG_Tool
             {
                 Log(txtLog, $"Serverdata.cfg 파일을 찾을 수 없습니다.\r\n");
             }
+            return userData;
         }
 
-        public static async void ConnectStart(TextBox txtLog, Dictionary<string, string> dicTagIp, string strUser, string strPass, bool bConnect)
+        public static async void ConnectStart(TextBox txtLog, Dictionary<string, string> dicTagIp, UserData userData)
         {
-            bConnect = false;
+            userData.SetConnect(false);
             var tasks = dicTagIp
-                        .Select(pair => Task.Run(() => ConnectServersAsync(pair.Value, txtLog, true, pair.Key, strUser, strPass)))
+                        .Select(pair => Task.Run(() => ConnectServersAsync(pair.Value, txtLog, true, pair.Key, userData.User, userData.Pass)))
                         .ToList();
 
             int taskCount = tasks.Count();
             Log(txtLog, $"서버 접속 시작 {taskCount}", 1);
             await Task.WhenAll(tasks);
-            bConnect = true;
+            userData.SetConnect(true);
 
             Log(txtLog, $"서버 접속 완료 {taskCount}", 1);
         }
@@ -270,160 +307,13 @@ namespace SG_Tool
             }
         }
 
-        //public static async Task CommandAsync(string strServerIp, string strCommand, string strTag, TextBox txtLog, bool bCommand, string strUser, string strPass)
-        //{
-        //    try
-        //    {
-        //        //Log(txtLog, $"🔹 CommandAsync : {strTag,-15} : {strCommand}");
-        //        //return;
-        //        await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
-
-        //        var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-        //        string strResult = cmd.Result;
-
-        //        if (bCommand)
-        //        {
-        //            var lines = strResult.Split('@');
-        //            for (int i = 0; i < lines.Length; i++)
-        //            {
-        //                if (i == 0) continue;
-        //                if (lines[i] == "")
-        //                {
-        //                    Log(txtLog, $"🔹 {strTag,-15} : 실행 중 Docker 없습니다.");
-        //                }
-        //                else
-        //                {
-        //                    var Parts = lines[i].Split('/');
-        //                    var Dockers = Parts[Parts.Length - 1].Split(':', ',');
-        //                    Log(txtLog, $"🔹 {strTag,-15} : {Dockers[0],-13} : {Dockers[1],-11} : {Dockers[2],12}");
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if (strCommand.Contains("allTogether_Tool_Monitoring.sh"))
-        //            {
-        //                var lines = strResult.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-        //                for (int i = 1; i < lines.Length; i++)
-        //                {
-        //                    var Parts = lines[i].Split(' ');
-        //                    if (Parts.Length == 2)
-        //                    {
-        //                        Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}");
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                if (strResult.Contains("inacrive"))
-        //                {
-        //                    Log(txtLog, $"🔹시간 변경 확인 재시도", 1);
-        //                    cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-        //                }
-        //                else
-        //                {
-        //                                   // 도커 생성 명령어
-        //                    if (strCommand.Contains("oneCommand_") || strCommand.Contains("allTogether_Up") || strCommand.Contains("allTogether_Restart"))
-        //                    {
-        //                        if (strResult.Contains("inacrive"))
-        //                        {
-        //                            Log(txtLog, $"❌ 시간 변경 확인 재시도", 1);
-        //                            cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-        //                        }
-        //                        else
-        //                        {
-        //                            Result(txtLog, strCommand, strResult, strTag);
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        Log(txtLog, $"🔹 실행 결과 : {strTag,-15} {strCommand}\r\n{strResult}");
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Log(txtLog, $"❌ {strTag,-15} {strServerIp,-15} 실행 중 오류 발생: {ex.Message}");
-        //    }
-        //}
-
-        
-        //public static async Task CommandServersAsync(string strServerIp, string strCommand, string strTag, TextBox txtLog, bool isUserCheck = false)
-        //{
-        //    try
-        //    {
-        //        // Log(txtLog, $"🔹Docker {strTag, -15} : {strCommand}");
-        //        // return;
-        //        var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-
-        //        if (isUserCheck)
-        //        {
-        //            string strResult = cmd.Result;
-        //            var lines = strResult.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
-        //            int nCurrentSize = int.Parse(lines[0]);
-        //            Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 유저접근 상태 확인중 5초 소요.... {nCurrentSize}");
-
-        //            await Task.Delay(5000); // 5초 지연.
-        //            var cmd2 = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-        //            var lines2 = cmd2.Result.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
-        //            int nCurrentSize2 = int.Parse(lines2[0]);
-
-        //            if (nCurrentSize < nCurrentSize2)
-        //            {
-        //                Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 게임서버 유저접근 확인됩니다. {nCurrentSize} >> {nCurrentSize2}");
-        //            }
-        //            else
-        //            {
-        //                Log(txtLog, $"❌ 실행 결과 : {strTag,-20} 게임서버 유저접근 없습니다.  {nCurrentSize} == {nCurrentSize2}");
-        //            }
-        //        }
-        //        else if (strCommand.Contains("docker"))
-        //        {
-        //            var lines = cmd.Result.Split('@');
-        //            for (int i = 0; i < lines.Length; i++)
-        //            {
-        //                if (lines.Length == 1)
-        //                {
-        //                    Log(txtLog, $"🔹Docker {strTag,-20} : 실행 중 Docker 없습니다.");
-        //                }
-        //                else
-        //                {
-        //                    if (i == 0) continue;
-
-        //                    var Parts = lines[i].Split('/');
-        //                    var Dockers = Parts[Parts.Length - 1].Split(':', ',');
-        //                    Log(txtLog, $"🔹Docker {strTag,-20} : {Dockers[0],-13} : {Dockers[1],-11} : {Dockers[2],12}");
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if (strCommand.Contains("pullUp_") || strCommand.Contains("removeDown"))
-        //            {
-        //                Result(txtLog, strCommand, cmd.Result, strTag);
-        //            }
-        //            else
-        //            {
-        //                Log(txtLog, $"🔹 실행 결과 : {strTag,-20} {strCommand}\r\n{cmd.Result}");
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Log(txtLog, $"❌ {strTag,-20} {strServerIp} 실행 중 오류 발생: {ex.Message}");
-        //    }
-        //}
-
-        
         public static async Task CommandServersAsync(string strServerIp, string strCommand, string strTag, TextBox txtLog, string strUser, string strPass, EnCommandType CommandType)
         {
             try
             {
                 //Log(txtLog, $"🔹 CommandAsync : {strTag,-15} : {strCommand}");
                 //return;
+
                 await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
 
                 var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
@@ -581,10 +471,10 @@ namespace SG_Tool
             }
         }
 
-        public static async void CountDownStart(TextBox txtLog, bool bCountdown, int nMinutes)
+        public static async void CountDownStart(TextBox txtLog, UserData userData, int nMinutes)
         {
-            bCountdown = true;
-            ChangeCountdown(bCountdown, txtLog);
+            userData.SetCountdown(true);
+            ChangeCountdown(true, txtLog);
             int countdown = nMinutes; // 10 minutes in seconds   // 600 > 10분
             var timer = new System.Timers.Timer(10000); // 10 seconds interval
             timer.Elapsed += (s, args) =>
@@ -598,20 +488,16 @@ namespace SG_Tool
             timer.Stop();
 
             await Task.Delay(1000);
-            bCountdown = false;
-            ChangeCountdown(bCountdown, txtLog);
+            userData.SetCountdown(false);
+            ChangeCountdown(false, txtLog);
         }
 
         static void ChangeCountdown(bool bCountdown, TextBox txtLog)
         {
             if (bCountdown)
-            {
                 Log(txtLog, $"Countdown Start 10 minutes", 1);
-            }
             else
-            {
                 Log(txtLog, $"Countdown Stop", 1);
-            }
         }
 
         public static bool ClickCheck(TextBox txtLog, string strName, bool bConnect, bool bCountdown = false)

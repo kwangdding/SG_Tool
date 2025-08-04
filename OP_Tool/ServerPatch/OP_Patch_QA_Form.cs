@@ -14,11 +14,8 @@ namespace SG_Tool.OP_Tool.ServerPatch
         FlowLayoutPanel m_checkBoxPanel = null!;
 
         string m_strServerPath = string.Empty; // 서버 목록 파일 경로
-        string m_strUsername = string.Empty;
-        string m_strPassword = string.Empty;
+        UserData m_userData = new UserData(string.Empty, string.Empty);
         const string PlaceholderText = "ex 20250214a";
-
-        bool m_bConnect = false;
 
         readonly Dictionary<string, string> m_dicTagIp = new Dictionary<string, string>();
         readonly Dictionary<string, TextBox> m_dicServerParameters = new Dictionary<string, TextBox>();
@@ -118,12 +115,12 @@ namespace SG_Tool.OP_Tool.ServerPatch
             layout.Controls.Add(m_txtLog, 0, 2);
             layout.SetColumnSpan(m_txtLog, 2);
 
-            // 좌측 레이아웃 + 우측 체크박스 패널 배치
+                   // 좌측 레이아웃 + 우측 체크박스 패널 배치
             mainPanel.Controls.Add(layout);
             mainPanel.Controls.Add(m_checkBoxPanel);
 
-            // 서버 정보 불러오기
-            SG_Common.LoadCredentials(m_txtLog, m_strUsername, m_strPassword);
+                   // 서버 정보 불러오기
+            m_userData = SG_Common.LoadCredentials(m_txtLog, EnProjectType.OP);
         }
 
 
@@ -185,7 +182,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
             }
 
             m_checkBoxPanel.Refresh();
-            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_strUsername, m_strPassword, m_bConnect);
+            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_userData);
         }
 
         void Parameter_Enter(object sender, EventArgs e, TextBox textBox)
@@ -208,7 +205,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
         async void ServerDown_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버다운", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "서버다운", m_userData.IsConnect))
                 await ExecuteOnServersAsync("removeDown.sh", "서버다운", EnCommandType.Scripts);
 
             await ExecuteOnServersAsync(@"docker ps --format ""@{{.Image}}, {{.RunningFor}}""", "도커확인", EnCommandType.Command);
@@ -216,7 +213,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
         async void ServerUp_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_userData.IsConnect))
                 await ExecuteOnServersAsync("pullUp_common.sh", "서버시작", EnCommandType.Scripts);
 
             await ExecuteOnServersAsync(@"docker ps --format ""@{{.Image}}, {{.RunningFor}}""", "도커확인", EnCommandType.Command);
@@ -224,7 +221,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
         async void DockerCheck_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_bConnect))
+            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_userData.IsConnect))
                 await ExecuteOnServersAsync(@"docker ps --format ""@{{.Image}}, {{.RunningFor}}""", "도커확인", EnCommandType.Command);
         }
 
@@ -244,9 +241,9 @@ namespace SG_Tool.OP_Tool.ServerPatch
                 return;
             }
 
-            if (string.IsNullOrEmpty(m_strUsername) || string.IsNullOrEmpty(m_strPassword))
+            if (string.IsNullOrEmpty(m_userData.User) || string.IsNullOrEmpty(m_userData.Pass))
             {
-                LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_strUsername} {m_strPassword}");
+                LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_userData.User} {m_userData.Pass}");
                 return;
             }
 
@@ -265,11 +262,11 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
                     if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
                     {
-                        await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_strUsername, m_strPassword);
+                        await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
                     }
                     
                     string strCommand = CommandType == EnCommandType.Command ? scriptName : $"sh /home/outer/scripts/{scriptName} {parameter}";
-                    await SG_Common.CommandServersAsync(serverIp, strCommand, tag, m_txtLog, m_strUsername, m_strPassword, CommandType);
+                    await SG_Common.CommandServersAsync(serverIp, strCommand, tag, m_txtLog, m_userData.User, m_userData.Pass, CommandType);
                 }
             });
 

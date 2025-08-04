@@ -16,12 +16,8 @@ namespace SG_Tool.OP_Tool.ServerPatch
         FlowLayoutPanel m_checkBoxPanel = null!;
 
         string m_strServerPath = string.Empty; // 서버 목록 파일 경로
-        string m_strUsername = string.Empty;
-        string m_strPassword = string.Empty;
+        UserData m_userData = new UserData(string.Empty, string.Empty);
         const string PlaceholderText = "ex 20250214a";
-
-        static bool m_bConnect = false;
-        static bool m_bCountdown = false;
 
         readonly Dictionary<string, List<string>> m_dicGroup = new Dictionary<string, List<string>>();
         readonly Dictionary<string, string> m_dicTagIp = new Dictionary<string, string>();
@@ -152,9 +148,9 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
         void LoadServerList()
         {
-            SG_Common.LoadCredentials(m_txtLog, m_strUsername, m_strPassword);
+            m_userData = SG_Common.LoadCredentials(m_txtLog, EnProjectType.OP);
 
-            // 라이브 서버 정보 로드
+                   // 라이브 서버 정보 로드
             m_strServerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OP", $"OP_Serverlist_Live.cfg");
 
             m_checkBoxPanel.Controls.Clear();
@@ -217,7 +213,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
                 {
                     var checkBox = new CheckBox
                     {
-                        Text = $"{dicGroup.Key, -15}",
+                        Text = dicGroup.Key,
                         AutoSize = true,
                         Checked = true
                     };
@@ -248,7 +244,7 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
             m_checkRegionPanel.Refresh();
             m_checkBoxPanel.Refresh();
-            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_strUsername, m_strPassword, m_bConnect);
+            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_userData);
         }
 
         void Parameter_Enter(object sender, EventArgs e, TextBox textBox)
@@ -271,19 +267,19 @@ namespace SG_Tool.OP_Tool.ServerPatch
 
         async void ServerDown_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버다운", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버다운", m_userData.IsConnect))
                 await ExecuteOnServersAsync("removeDown.sh", EnCommandType.Scripts);
         }
 
         async void ServerUp_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_userData.IsConnect))
                 await ExecuteOnServersAsync("pullUp_common.sh", EnCommandType.Scripts);
         }
 
         async void DockerCheck_Click(object sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "도커확인", m_userData.IsConnect))
                 await ExecuteOnServersAsync(@"docker ps --format ""@{{.Image}}, {{.RunningFor}}""", EnCommandType.Command);
         }
 
@@ -294,90 +290,98 @@ namespace SG_Tool.OP_Tool.ServerPatch
             var today = DateTime.Now.ToString("yyyy-MM-dd");
             
             string strPath = $"du -s --apparent-size -B1 /var/log/outer/{today}/info";
-            if (SG_Common.ClickCheck(m_txtLog, "유저접근 확인", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "유저접근 확인", m_userData.IsConnect))
                 await ExecuteOnServersAsync(strPath, EnCommandType.UserCheck);
-        }   
+        }
 
         async Task ExecuteOnServersAsync(string scriptName, EnCommandType CommandType)
         {
             LogMessage($"✅======= Command Start =======");
-
             int nCount = 0;
-            var selectedRegions = m_checkRegionPanel.Controls.OfType<FlowLayoutPanel>()
+
+            try
+            {
+                var selectedRegions = m_checkRegionPanel.Controls.OfType<FlowLayoutPanel>()
+                        .SelectMany(panel => panel.Controls.OfType<CheckBox>())
+                        .Where(cb => cb.Checked)
+                        .Select(cb => cb.Text)
+                        .ToList();
+
+                if (!selectedRegions.Any())
+                {
+                    LogMessage("선택된 국가가 없습니다.");
+                    return;
+                }
+
+                var selectedTags = m_checkBoxPanel.Controls.OfType<FlowLayoutPanel>()
                     .SelectMany(panel => panel.Controls.OfType<CheckBox>())
                     .Where(cb => cb.Checked)
                     .Select(cb => cb.Text)
                     .ToList();
-            
-            if (!selectedRegions.Any())
-            {
-                LogMessage("선택된 국가가 없습니다.");
-                return;
-            }
 
-            var selectedTags = m_checkBoxPanel.Controls.OfType<FlowLayoutPanel>()
-                .SelectMany(panel => panel.Controls.OfType<CheckBox>())
-                .Where(cb => cb.Checked)
-                .Select(cb => cb.Text)
-                .ToList();
-
-            if (!selectedTags.Any())
-            {
-                LogMessage("선택된 서버가 없습니다.");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(m_strUsername) || string.IsNullOrEmpty(m_strPassword))
-            {
-                LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_strUsername} {m_strPassword}");
-                return;
-            }
-
-            bool bPullUp = scriptName.Contains("pullUp_common.sh");
-            string parameter = "";
-
-            var tasks = selectedTags.SelectMany(tag =>
-            {
-                if (bPullUp)
+                if (!selectedTags.Any())
                 {
-                    parameter = m_dicServerParameters[tag].Text;
-                    scriptName = GetOPCommand(tag);
-                }                
+                    LogMessage("선택된 서버가 없습니다.");
+                    return;
+                }
 
-                return m_dicGroup[tag]
-                    .Where(strTag => selectedRegions.Any(region => region.Contains(GetRegion(strTag))))
-                    .Select(async strTag =>
+                if (string.IsNullOrEmpty(m_userData.User) || string.IsNullOrEmpty(m_userData.Pass))
+                {
+                    LogMessage($"❌ ID 또는 비밀번호가 설정되지 않았습니다. {m_userData.User} {m_userData.Pass}");
+                    return;
+                }
+
+                bool bPullUp = scriptName.Contains("pullUp_common.sh");
+                string parameter = "";
+
+                var tasks = selectedTags.SelectMany(tag =>
+                {
+                    if (bPullUp)
                     {
-                        if (m_dicTagIp.TryGetValue(strTag, out var serverIp))
+                        parameter = m_dicServerParameters[tag.Trim()].Text;
+                        scriptName = GetOPCommand(tag.Trim());
+                    }
+                    
+                    //SG_Common.Log(m_txtLog, $"[ExecuteOnServersAsync] {CommandType} {tag.Trim()}, m_dicGroup : {m_dicGroup.ContainsKey(tag.Trim())}");
+                    return m_dicGroup[tag.Trim()]
+                        .Where(strTag => selectedRegions.Any(region => region.Contains(GetRegion(strTag))))
+                        .Select(async strTag =>
                         {
-                            if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
+                            if (m_dicTagIp.TryGetValue(strTag, out var serverIp))
                             {
-                                await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_strUsername, m_strPassword);
-                            }
-                            
-                            nCount++;
+                                if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
+                                {
+                                    await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
+                                }
 
-                            switch(CommandType)
-                            {
-                                case EnCommandType.UserCheck:
-                                    if (strTag.Contains("outr-game-")) // 게임 서버만 유저 상태 확인. // 롤링패치 확인용.
-                                    {
-                                        await SG_Common.CommandServersAsync(serverIp, $"{scriptName} 2>&1", strTag, m_txtLog, m_strUsername, m_strPassword, CommandType);
-                                    }
-                                    break;
-                                case EnCommandType.Command:
-                                    await SG_Common.CommandServersAsync(serverIp, $"{scriptName} 2>&1", strTag, m_txtLog, m_strUsername, m_strPassword, CommandType);
-                                    break;
-                                case EnCommandType.Scripts:
-                                    await SG_Common.CommandServersAsync(serverIp, $"sh /home/outer/scripts/{scriptName} {parameter} 2>&1", strTag, m_txtLog, m_strUsername, m_strPassword, CommandType);
-                                    break;
-                            }
-                        }
-                    })
-                    .ToList();
-            });
+                                nCount++;
 
-            await Task.WhenAll(tasks);
+                                switch (CommandType)
+                                {
+                                    case EnCommandType.UserCheck:
+                                        if (strTag.Contains("outr-game-")) // 게임 서버만 유저 상태 확인. // 롤링패치 확인용.
+                                        {
+                                            await SG_Common.CommandServersAsync(serverIp, scriptName, strTag, m_txtLog, m_userData.User, m_userData.Pass, CommandType);
+                                        }
+                                        break;
+                                    case EnCommandType.Command:
+                                        await SG_Common.CommandServersAsync(serverIp, scriptName, strTag, m_txtLog, m_userData.User, m_userData.Pass, CommandType);
+                                        break;
+                                    case EnCommandType.Scripts:
+                                        await SG_Common.CommandServersAsync(serverIp, $"sh /home/outer/scripts/{scriptName} {parameter}", strTag, m_txtLog, m_userData.User, m_userData.Pass, CommandType);
+                                        break;
+                                }
+                            }
+                        })
+                        .ToList();
+                });
+
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                SG_Common.Log(m_txtLog, $"❌ {CommandType} {scriptName} 실행 중 오류 발생: {ex.Message}");
+            }
             LogMessage($"✅ ======= Command Finish {nCount} =======");
         }
 

@@ -19,12 +19,8 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         FlowLayoutPanel m_textBoxPanel = null!;
 
         string m_strServerPath = string.Empty; // 서버 목록 파일 경로
-        string m_strUsername = string.Empty;
-        string m_strPassword = string.Empty;
+        UserData m_userData = new UserData(string.Empty, string.Empty);
         const string PlaceholderText = "ex 20290214a";
-
-        static bool m_bConnect = false;
-        static bool m_bCountdown = false;
 
         readonly Dictionary<string, string> m_dicTagIp = new Dictionary<string, string>();
         readonly Dictionary<EP7_CommandType, TextBox> m_dicServerParameters = new Dictionary<EP7_CommandType, TextBox>();
@@ -173,8 +169,8 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
             this.Controls.Add(mainLayout);
 
-                     // 데이터 로드
-            SG_Common.LoadCredentials(m_txtLog, m_strUsername, m_strPassword);
+            // 데이터 로드
+            m_userData = SG_Common.LoadCredentials(m_txtLog, EnProjectType.EP7);
             LoadServerList();
         }
 
@@ -257,7 +253,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             }
 
             m_checkBoxPanel.Refresh();
-            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_strUsername, m_strPassword, m_bConnect);
+            SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_userData);
         }
 //===========================================================================================
         
@@ -281,30 +277,30 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         async void ServerDown_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그재시작)", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그재시작)", m_userData.IsConnect, m_userData.IsCountdown))
                 await ServerStopAsync(false);
         }
 
         async void LogServerDown_Click(object? sender, EventArgs e)
         {            
-            if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그종료)", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그종료)", m_userData.IsConnect, m_userData.IsCountdown))
                 await ServerStopAsync(true);
         }
 
         async void ServerUp_Click(object? sender, EventArgs e)
         {
-            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_userData.IsConnect, m_userData.IsCountdown))
                 await ServerStartAsync();
         }
 
         async void Monitoring_Click(object? sender, EventArgs e)
         {         
-            if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_userData.IsConnect, m_userData.IsCountdown))
                 await MonitoringAsync();            
         }
         async void RollingPatch_Click(object? sender, EventArgs e)
         {         
-            if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_bConnect, m_bCountdown))
+            if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_userData.IsConnect, m_userData.IsCountdown))
                 await RollingPatchAsync();            
         }
         
@@ -312,7 +308,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         
         async Task ServerStopAsync(bool bLogDown)
         {
-            SG_Common.CountDownStart(m_txtLog, m_bCountdown, 600);
+            SG_Common.CountDownStart(m_txtLog, m_userData, 600);
             await Task.WhenAll(GetTaskList(1, bLogDown));
             LogMessage($"서버다운 {bLogDown} Finish", 1);
         }
@@ -352,7 +348,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "match_down", string.Empty, EnCommandType.Scripts), tag, "match_down");
             }
 
-            while (m_bCountdown) // CommonPatch.IsCountdown이 false가 될 때까지 대기
+            while (m_userData.IsCountdown) // CommonPatch.IsCountdown이 false가 될 때까지 대기
             {
                 await Task.Delay(1000); // 100ms 간격으로 상태 확인
             }
@@ -403,11 +399,11 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         {
             if (parameter == string.Empty)
             {
-                return SG_Common.CommandServersAsync(ip, $"{m_dicCommand[strCommand]}", tag, m_txtLog, m_strUsername, m_strPassword, commandType);
+                return SG_Common.CommandServersAsync(ip, $"{m_dicCommand[strCommand]}", tag, m_txtLog, m_userData.User, m_userData.Pass, commandType);
             }
             else 
             {
-                return SG_Common.CommandServersAsync(ip, $"{m_dicCommand[strCommand]} {parameter} 2>&1", tag, m_txtLog, m_strUsername, m_strPassword, commandType);
+                return SG_Common.CommandServersAsync(ip, $"{m_dicCommand[strCommand]} {parameter} 2>&1", tag, m_txtLog, m_userData.User, m_userData.Pass, commandType);
             }
         }
 
