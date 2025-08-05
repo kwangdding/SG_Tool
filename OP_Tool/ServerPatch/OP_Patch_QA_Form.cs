@@ -61,13 +61,13 @@ namespace SG_Tool.OP_Tool.ServerPatch
                 BackColor = Color.LightBlue
             };
 
-            m_btnDown = new Button { Text = "서버다운", Width = 100 };
+            m_btnDown = SG_Common.GetButton("서버다운", Color.AliceBlue);
             m_btnDown.Click += ServerDown_Click;
 
-            m_btnUp = new Button { Text = "서버업", Width = 100 };
+            m_btnUp = SG_Common.GetButton("서버업", Color.AliceBlue);
             m_btnUp.Click += ServerUp_Click;
 
-            m_btnDockerCheck = new Button { Text = "도커체크", Width = 100 };
+            m_btnDockerCheck = SG_Common.GetButton("도커체크", Color.AliceBlue);
             m_btnDockerCheck.Click += DockerCheck_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] { m_btnDown, m_btnUp, m_btnDockerCheck });
@@ -260,10 +260,10 @@ namespace SG_Tool.OP_Tool.ServerPatch
                         scriptName = GetOPCommandQA(tag);
                     }
 
-                    if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
-                    {
-                        await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
-                    }
+                    // if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
+                    // {
+                    //     await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
+                    // }
                     
                     string strCommand = CommandType == EnCommandType.Command ? scriptName : $"sh /home/outer/scripts/{scriptName} {parameter}";
                     await SG_Common.CommandServersAsync(serverIp, strCommand, tag, m_txtLog, m_userData.User, m_userData.Pass, CommandType);

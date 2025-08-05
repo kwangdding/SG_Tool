@@ -170,16 +170,16 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 BackColor = Color.LightBlue
             };
 
-            m_btnUp = new Button { Text = "서버업", Width = 100 };
+            m_btnUp = SG_Common.GetButton("서버업", Color.AliceBlue);// new Button { Text = "서버업", Width = 100 };
             m_btnUp.Click += ServerUp_Click;
 
-            m_btnDockerCheck = new Button { Text = "도커체크", Width = 100 };
+            m_btnDockerCheck = SG_Common.GetButton("도커체크", Color.AliceBlue);
             m_btnDockerCheck.Click += DockerCheck_Click;
 
-            m_btnRolling = new Button { Text = "롤링(star)", Width = 100 };
+            m_btnRolling = SG_Common.GetButton("롤링(star)", Color.AliceBlue);
             m_btnRolling.Click += Rolling_Click;
 
-            m_btnCDN = new Button { Text = "롤링(star)", Width = 100 };
+            m_btnCDN = SG_Common.GetButton("롤링(star)", Color.AliceBlue);
             m_btnCDN.Click += CDN_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] { m_btnUp, m_btnDockerCheck, m_btnRolling, m_btnCDN });

@@ -15,7 +15,10 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SG_Tool
 {
-    public enum EnProjectType { EP7, L9, Email, CF, OP}
+    public enum EnUpdateType { LoginIni, DataCfg }
+    public enum EnProjectType { EP7, L9, Email, CF, OP }
+    public enum EnCommandType { Command, UserCheck, Monitoring, Scripts }
+
     public enum EP7_CommandType { Verinfo, Game, Battle, Log, Chan }
     public enum EP7_EnRegion { Asia, Europ, Global, Japan, Korea }
     public enum EcsDataEnum { front, auth, noti, op_api, op_front, log }
@@ -24,7 +27,7 @@ namespace SG_Tool
     public enum Email_DataType { Name, MailMain }
     public enum CF_DataType { URL, ID, PW, Akamai, Akamai_ID, Akamai_Key, LocalPath, TargetPath, Version, PatchLocalPath, PatchPath, Login_ServerInfo, WinPath, Patcher, Purge, RemotePath, SVNPath, VersionPath }
 
-    public enum EnCommandType { Command, UserCheck, Monitoring, Scripts }
+    
 
     public class EcsData
     {
@@ -78,18 +81,17 @@ namespace SG_Tool
     internal class SG_Common
     {
         static Dictionary<string, SshClient> m_dicServer = new Dictionary<string, SshClient>();
-
         public static Dictionary<string, SshClient> Servers { get { return m_dicServer; } }
 
-        public static Button GetButton(string strName)
+        public static Button GetButton(string strName, Color backColor, int width = 100)
         {
             Button button = new Button
             {
                 Text = strName,
-                Width = 100,
+                Width = width,
                 Height = 30,
                 Margin = new Padding(5, 6, 5, 0),
-                BackColor = Color.AliceBlue,
+                BackColor = backColor,
                 Anchor = AnchorStyles.Left
             };
             return button;
@@ -166,60 +168,7 @@ namespace SG_Tool
             return txt;
         }
 
-        public static bool IsActivated(TextBox txtLog, ComboBox comboBox, bool bSetting, bool bLoad)
-        {
-            if (!bSetting)
-            {
-                Log(txtLog, $"cfg 파일이 없어 Patch_QA 환경 실행 할 수 없습니다.");
-                return false;
-            }
-
-            string selectedValue = comboBox.SelectedItem?.ToString(); // 콤보박스에서 선택한 값
-            if (!bLoad && string.IsNullOrEmpty(selectedValue))
-            {
-                Log(txtLog, $"서버 환경을 선택해주세요....");
-                MessageBox.Show("환경을 선택해주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            return true;
-        }
-
-        public static bool SetPatchL9Data(string configFile, Dictionary<L9DataType, string> dicData)
-        {
-            if (File.Exists(configFile))
-            {
-                var lines = File.ReadAllLines(configFile);
-
-                foreach (var line in lines)
-                {
-                    // 공백 줄 또는 주석 처리된 줄 무시
-                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
-                        continue;
-
-                    var parts = line.Split(' ', (char)2, (char)StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length < 2)
-                        continue;
-
-                    // Enum.TryParse를 이용한 안전한 파싱
-                    if (Enum.TryParse(parts[0], out L9DataType key))
-                    {
-                        if (dicData.ContainsKey(key))
-                        {
-                            dicData[key] = parts[1].Trim();
-                        }
-                        else
-                        {
-                            dicData.Add(key, parts[1].Trim());
-                        }
-                    }
-                }
-                return true;
-            }
-
-            return false;
-        }
-
+        #region EP7 & OP
         public static UserData LoadCredentials(TextBox txtLog, EnProjectType enProjectType)
         {
             string credentialsPath = string.Empty;
@@ -268,7 +217,7 @@ namespace SG_Tool
             Log(txtLog, $"서버 접속 완료 {taskCount}", 1);
         }
 
-        public static async Task ConnectServersAsync(string serverIp, TextBox txtLog, bool bFirst, string strTag, string strUser, string strPass)
+        static async Task ConnectServersAsync(string serverIp, TextBox txtLog, bool bFirst, string strTag, string strUser, string strPass)
         {
             try
             {
@@ -311,9 +260,6 @@ namespace SG_Tool
         {
             try
             {
-                //Log(txtLog, $"🔹 CommandAsync : {strTag,-15} : {strCommand}");
-                //return;
-
                 await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
 
                 var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
@@ -406,40 +352,7 @@ namespace SG_Tool
             }
         }
 
-
-        static void Result(TextBox txtLog, string strCommand, string strResult, string strTag)
-        {
-            if (strResult.Contains("Error response from daemon"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : Error response from daemon : Docker 오류 발생.");
-            }
-            else if (strResult.Contains("already exists"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : already exists : Docker 이미 존재합니다.");
-            }
-            else if (strResult.Contains("Error: No such container"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : No such container : Docker 이미 존재합니다.");
-            }
-            else if (strResult.Contains("Error: No such image"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : No such image : Docker 이미지가 없습니다.");
-            }
-            else if (strResult.Contains("Error: No such file or directory"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : No such file or directory : Docker 파일이 없습니다.");
-            }
-            else if (strResult.Contains("Error: No such service"))
-            {
-                Log(txtLog, $"❌ {strTag,-20} : No such service : Docker 서비스가 없습니다.");
-            }
-            else
-            {
-                var Parts = strCommand.Split('/');
-                Log(txtLog, $"🔹 DockerUp 실행 완료. : {strTag,-20} : {Parts[Parts.Length - 1]}");
-            }
-        }
-
+        
         public static async Task AwaitWithPeriodicLog(TextBox txtLog, Task task, string tag, string operation, int intervalMilliseconds = 20000)
         {
             using (var cts = new CancellationTokenSource())
@@ -492,14 +405,6 @@ namespace SG_Tool
             ChangeCountdown(false, txtLog);
         }
 
-        static void ChangeCountdown(bool bCountdown, TextBox txtLog)
-        {
-            if (bCountdown)
-                Log(txtLog, $"Countdown Start 10 minutes", 1);
-            else
-                Log(txtLog, $"Countdown Stop", 1);
-        }
-
         public static bool ClickCheck(TextBox txtLog, string strName, bool bConnect, bool bCountdown = false)
         {
             if (!ProsessCheck($"{strName} 기능을 실행하시겠습니까?"))
@@ -538,6 +443,59 @@ namespace SG_Tool
             return relativePath.Replace('/', Path.DirectorySeparatorChar);
         }
 
+        public static string GetCommonTag(string[] strGroup, string tag)
+        {
+            for (int i = 0; i < strGroup.Length; i++)
+            {
+                if (tag.Contains(strGroup[i]))
+                {
+                    return strGroup[i];
+                }
+            }
+            return tag;
+        }
+        
+        static void Result(TextBox txtLog, string strCommand, string strResult, string strTag)
+        {
+            if (strResult.Contains("Error response from daemon"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : Error response from daemon : Docker 오류 발생.");
+            }
+            else if (strResult.Contains("already exists"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : already exists : Docker 이미 존재합니다.");
+            }
+            else if (strResult.Contains("Error: No such container"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : No such container : Docker 이미 존재합니다.");
+            }
+            else if (strResult.Contains("Error: No such image"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : No such image : Docker 이미지가 없습니다.");
+            }
+            else if (strResult.Contains("Error: No such file or directory"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : No such file or directory : Docker 파일이 없습니다.");
+            }
+            else if (strResult.Contains("Error: No such service"))
+            {
+                Log(txtLog, $"❌ {strTag,-20} : No such service : Docker 서비스가 없습니다.");
+            }
+            else
+            {
+                var Parts = strCommand.Split('/');
+                Log(txtLog, $"🔹 DockerUp 실행 완료. : {strTag,-20} : {Parts[Parts.Length - 1]}");
+            }
+        }
+
+        static void ChangeCountdown(bool bCountdown, TextBox txtLog)
+        {
+            if (bCountdown)
+                Log(txtLog, $"Countdown Start 10 minutes", 1);
+            else
+                Log(txtLog, $"Countdown Stop", 1);
+        }
+
         static string AppendDirectorySeparatorChar(string path)
         {
             if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
@@ -558,25 +516,66 @@ namespace SG_Tool
                 return false;
             }
         }
+        #endregion EP7 & OP
 
-        public static string GetCommonTag(string[] strGroup, string tag)
-        {
-            for (int i = 0; i < strGroup.Length; i++)
-            {
-                if (tag.Contains(strGroup[i]))
-                {
-                    return strGroup[i];
-                }
-            }
-            return tag;
-        }
         #region L9_Tool
+        
+        public static bool IsActivated(TextBox txtLog, ComboBox comboBox, bool bSetting, bool bLoad)
+        {
+            if (!bSetting)
+            {
+                Log(txtLog, $"cfg 파일이 없어 Patch_QA 환경 실행 할 수 없습니다.");
+                return false;
+            }
+
+            string selectedValue = comboBox.SelectedItem?.ToString(); // 콤보박스에서 선택한 값
+            if (!bLoad && string.IsNullOrEmpty(selectedValue))
+            {
+                Log(txtLog, $"서버 환경을 선택해주세요....");
+                MessageBox.Show("환경을 선택해주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool SetPatchL9Data(string configFile, Dictionary<L9DataType, string> dicData)
+        {
+            if (File.Exists(configFile))
+            {
+                var lines = File.ReadAllLines(configFile);
+
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#")) // 공백 줄 또는 주석 처리된 줄 무시
+                        continue;
+
+                    var parts = line.Split(' ', (char)2, (char)StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length < 2) continue;
+
+                    if (Enum.TryParse(parts[0], out L9DataType key)) // Enum.TryParse를 이용한 안전한 파싱
+                    {
+                        if (dicData.ContainsKey(key))
+                        {
+                            dicData[key] = parts[1].Trim();
+                        }
+                        else
+                        {
+                            dicData.Add(key, parts[1].Trim());
+                        }
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
+
         public static string UpdateImageTag(string fullImage, string newTag)
         {
             var baseImage = fullImage.Contains(":") ? fullImage.Substring(0, fullImage.LastIndexOf(":")) : fullImage;
             return $"{baseImage}:{newTag}";
         }
-
 
         public async static void UpdateECS(bool bOn, TextBox txtLog, AmazonECSClient ecsClient, TableLayoutPanel checkBoxPanel, Dictionary<EcsDataEnum, EcsData> dicecsData)
         {
@@ -789,6 +788,7 @@ namespace SG_Tool
                 }
             }
         }
+
         public static void ReplyToLatestMail(TextBox txtLog, string subjectKeyword, string bodyToInsert)
         {
             Log(txtLog, $"[ReplyToLatestMail] Outlook 연결 시도...");
@@ -877,846 +877,6 @@ namespace SG_Tool
             return folders;
         }
         #endregion Email_Tool
-
-        #region CF_Tool
-        public static bool SetPatchData(string strPath, Dictionary<CF_DataType, string> dicData)
-        {
-            if (File.Exists(strPath))
-            {
-                var lines = File.ReadAllLines(strPath);
-
-                foreach (var line in lines)
-                {
-                    // 공백 줄 또는 주석 처리된 줄 무시
-                    if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
-                        continue;
-
-                    var parts = line.Split(' ', (char)2, (char)StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length < 2)
-                        continue;
-
-                    // Enum.TryParse를 이용한 안전한 파싱
-                    if (Enum.TryParse(parts[0], out CF_DataType key))
-                    {
-                        dicData[key] = parts[1].Trim();
-                    }
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-
-        public static async void FileMove(TextBox txtLog, Dictionary<CF_DataType, string> dicData, string strParam, int nType, string strDate, string strCfg) //QA : 0, Live : 1
-        {
-            using var progressForm = new Progress_Form("CDN패치 파일 설정");
-            progressForm.Show();
-            await Task.Delay(5000); // UI 렌더링 대기
-
-            try
-            {
-                progressForm.UpdateProgress(10, "패치 다운로드 시작..");
-                var parts = strParam.Split('_');  //"CF_PH_Patch_2505_QA01"
-                Log(txtLog, $"FileMove(01)    parameter : {strParam} : {parts.Length}");
-
-                string strTarget = parts[3];    //2505
-                string strQA = parts[4];        //QA01
-
-                // 1. FTP 접속정보 및 다운로드 파일 경로 설정.
-                string ftpUrl = $"{dicData[CF_DataType.URL]}/{parts[0]}_{parts[1]}_{parts[2]}_{strTarget}/{strQA}";
-                string ftpUsername = $"{dicData[CF_DataType.ID]}";
-                string ftpPassword = $"{dicData[CF_DataType.PW]}";
-
-                if (nType == 0) // QA
-                {
-                    // 2. 로컬 다운로드 받을 경로 생성.
-                    string localDownloadPath = $@"{dicData[CF_DataType.LocalPath]}\CF_PH_Patch_{strTarget}\{strQA}";
-                    SetDirectory(localDownloadPath);   // 로컬 경로 대상 디렉토리 생성
-
-                    await Task.Delay(5000);
-                    progressForm.UpdateProgress(30, "FTP 파일 다운로드 중..");
-
-                    // 3. FTP에서 로컬 경로에 파일 다운로드 및 압축 해제
-                    await DownloadFromFtp(txtLog, ftpUrl, ftpUsername, ftpPassword, localDownloadPath, 1, strParam, strCfg, progressForm);
-                    Log(txtLog, $"FileMove(02) localDownloadPath : {localDownloadPath}");
-
-                    await Task.Delay(5000);
-                    progressForm.UpdateProgress(60, "패치파일 파일 복사 중..");
-
-                    // 4. 다운로드 받은 파일 복사할 경로 생성.
-                    string targetPath = $@"{dicData[CF_DataType.TargetPath]}\v{strTarget}_{strQA}";
-                    SetDirectory(targetPath);   // 파일복사 대상 디렉토리 생성
-
-                    // 5. targetPath 경로에 CF_PH_CLIENT_Patch 파일 복사.
-                    string[] clientDirs = Directory.GetDirectories(localDownloadPath, "*CF_PH_CLIENT_Patch*", SearchOption.TopDirectoryOnly);
-                    foreach (var dir in clientDirs)
-                    {
-                        //string sourceClientPath = clientDirs[0]; // 첫 번째 매칭 폴더 사용
-                        Log(txtLog, $"FileMove(03) [COPY] {dir} → {targetPath}");
-                        CopyAllFiles(txtLog, dir, targetPath); // 재귀 복사 수행
-                    }
-                }
-                else // Live
-                {
-                    // 4. 복사할 파일 리스트 구성.
-                    string baseLocalPath = $@"{dicData[CF_DataType.LocalPath]}\CF_PH_Patch_{strTarget}";
-                    int currentQAVersion = int.Parse(strQA.Replace("QA", "")); // 현재 QA 버전 숫자 추출 (예: QA09 -> 9)
-                    int latestAppliedQA = GetLatestAppliedQAVersion(dicData[CF_DataType.TargetPath], strTarget); // 예: 3
-
-                    // 5. QA 버전 순서대로 정렬
-                    var qaFolders = Directory.GetDirectories(baseLocalPath, "QA*", SearchOption.TopDirectoryOnly)
-                        .Select(path => new
-                        {
-                            FullPath = path,
-                            QAName = Path.GetFileName(path),
-                            QANumber = ExtractQANumber(Path.GetFileName(path))
-                        })
-                        .Where(x => x.QANumber > latestAppliedQA && x.QANumber <= currentQAVersion)
-                        .OrderBy(x => x.QANumber)
-                        .ToList();
-
-                    if (!qaFolders.Any())
-                    {
-                        Log(txtLog, $"[Live] 복사할 대상 QA 폴더가 없습니다.", 0, false, true);
-                        return;
-                    }
-
-                    // 6. 라이브 diff_live 경로 버전 폴더 생성.
-                    string targetPath = $@"{dicData[CF_DataType.TargetPath]}\client_{strDate}_{strTarget}_{strQA}";
-                    SetDirectory(targetPath);
-                    Log(txtLog, $"FileMove Live(02)    targetPath : {targetPath}");
-
-                    await Task.Delay(5000);
-                    progressForm.UpdateProgress(60, "패치파일 파일 복사 중..");
-
-                    // 7. targetPath 경로에 CF_PH_CLIENT_Patch 파일 복사.
-                    foreach (var qaFolder in qaFolders)
-                    {
-                        var patchDirs = Directory.GetDirectories(qaFolder.FullPath, "CF_PH_CLIENT_Patch_*", SearchOption.TopDirectoryOnly)
-                            .OrderBy(x => ExtractVersionNumber(Path.GetFileName(x)))
-                            .ToList();
-
-                        foreach (var patchDir in patchDirs)
-                        {
-                            Log(txtLog, $"FileMove Live(03) [COPY] \r\n {patchDir} → \r\n {targetPath}");
-                            CopyAllFiles(txtLog, patchDir, targetPath);
-                        }
-                    }
-
-                    await Task.Delay(5000);
-                    progressForm.UpdateProgress(80, "Version 수정 중..");
-                    // 8. cfg 파일 Version 수정
-                    VersionChange(txtLog, strParam, strCfg);
-                }
-
-                await Task.Delay(5000);
-                progressForm.UpdateProgress(100, "CDN 빌드 준비 완료");
-                await Task.Delay(10000);
-
-                Log(txtLog, $"Patch process completed 복사가 완료되었습니다!", 0, false, false);
-
-                // 3. PatchExpMgr.exe 실행
-                if (File.Exists(dicData[CF_DataType.Patcher]))
-                {
-                    ProcessStartInfo psi = new ProcessStartInfo
-                    {
-                        FileName = dicData[CF_DataType.Patcher],
-                        UseShellExecute = true,
-                        Verb = "runas", // 관리자 권한 요청
-                        WorkingDirectory = Path.GetDirectoryName(dicData[CF_DataType.Patcher])
-                    };
-                    Process.Start(psi);
-                }
-                else
-                {
-                    throw new FileNotFoundException($"Patcher Manager not found: {dicData[CF_DataType.Patcher]}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"An error occurred: {ex.Message}", 0, false, true);
-                throw new Exception($"An error occurred: {ex.Message}");
-            }
-            finally
-            {
-                progressForm.Close();
-            }
-        }
-
-        static int ExtractQANumber(string qaName)
-        {
-            var match = Regex.Match(qaName, @"QA(\d+)");
-            return match.Success ? int.Parse(match.Groups[1].Value) : 0;
-        }
-
-        static int ExtractVersionNumber(string folderName)
-        {
-            var match = Regex.Match(folderName, @"_(\d{4,})$");
-            return match.Success ? int.Parse(match.Groups[1].Value) : 0;
-        }
-
-        static int GetLatestAppliedQAVersion(string baseTargetPath, string strTarget)
-        {
-            if (!Directory.Exists(baseTargetPath))
-                return 0;
-
-            var dirs = Directory.GetDirectories(baseTargetPath, $"client_*_{strTarget}_QA*", SearchOption.TopDirectoryOnly);
-
-            var maxQA = dirs
-                .Select(d => Regex.Match(d, @"QA(\d+)$"))
-                .Where(m => m.Success)
-                .Select(m => int.Parse(m.Groups[1].Value))
-                .DefaultIfEmpty(0)
-                .Max();
-
-            return maxQA;
-        }
-
-        public static void SetDirectory(string strPath)
-        {
-            if (!Directory.Exists(strPath))
-                Directory.CreateDirectory(strPath);
-        }
-
-        public static void CopyAllFiles(TextBox txtLog, string sourceDir, string targetDir)
-        {
-            try
-            {
-                if (!Directory.Exists(sourceDir))
-                {
-                    Log(txtLog, $"⚠️ [CopyAllFiles] 소스 경로가 존재하지 않습니다: {sourceDir}");
-                    return; // 경로 없으면 종료
-                }
-
-                Log(txtLog, $"[CopyAllFiles] {sourceDir} → {targetDir}");
-
-                foreach (string dirPath in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
-                {
-                    string relativePath = GetRelativePath(sourceDir, dirPath);
-                    SetDirectory(Path.Combine(targetDir, relativePath));
-                }
-
-                foreach (string filePath in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
-                {
-                    string relativePath = GetRelativePath(sourceDir, filePath);
-                    string destFilePath = Path.Combine(targetDir, relativePath);
-                    File.Copy(filePath, destFilePath, true);
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFiles] 권한 오류: 관리자 권한이 필요합니다. → {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 권한 오류: 관리자 권한이 필요합니다. → {ex.Message}");
-            }
-            catch (IOException ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFiles] 파일 입출력 오류: {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 파일 입출력 오류: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFiles] 알 수 없는 오류 발생: {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 알 수 없는 오류 발생: {ex.Message}");
-            }
-        }
-
-
-        public static void CopyFile(TextBox txtLog, string sourceDir, string targetDir)
-        {
-            try
-            {
-                Log(txtLog, $"[CopyAllFile] {sourceDir} → {targetDir}");
-                if (!File.Exists(sourceDir))
-                {
-                    Log(txtLog, $"❌ 원본 파일이 존재하지 않음: {sourceDir}");
-                    return;
-                }
-
-                File.Copy(sourceDir, targetDir, true);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFile] 권한 오류: 관리자 권한이 필요합니다. → {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 권한 오류: 관리자 권한이 필요합니다. → {ex.Message}");
-            }
-            catch (IOException ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFile] 파일 입출력 오류: {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 파일 입출력 오류: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"❌ [CopyAllFile] 알 수 없는 오류 발생: {ex.Message}");
-                throw new Exception($"❌ [CopyAllFiles] 알 수 없는 오류 발생: {ex.Message}");
-            }
-        }
-
-        public static void UploadDirectory(TextBox txtLog, SftpClient client, string localPath, string remotePath)
-        {
-            foreach (var file in Directory.GetFiles(localPath))
-            {
-                using (var stream = File.OpenRead(file))
-                {
-                    string remoteFilePath = Path.Combine(remotePath, Path.GetFileName(file)).Replace("\\", "/");
-                    client.UploadFile(stream, remoteFilePath);
-                    Log(txtLog, $"[UPLOAD] {remoteFilePath}");
-                }
-            }
-
-            foreach (var dir in Directory.GetDirectories(localPath))
-            {
-                string remoteSubDir = Path.Combine(remotePath, Path.GetFileName(dir)).Replace("\\", "/");
-                if (!client.Exists(remoteSubDir))
-                {
-                    client.CreateDirectory(remoteSubDir);
-                    Log(txtLog, $"[MKDIR] {remoteSubDir}");
-                }
-
-                UploadDirectory(txtLog, client, dir, remoteSubDir);
-            }
-        }
-
-        public static async Task UploadFTP(TextBox txtLog, Dictionary<CF_DataType, string> dicData)
-        {
-            Log(txtLog, $"============ [UploadFTP] Start ============");
-
-            using var progressForm = new Progress_Form("FTP 업로드");
-            progressForm.Show();
-            await Task.Delay(5000); // UI 렌더링 대기
-
-            try
-            {
-                progressForm.UpdateProgress(10, "SVN 프로세스 시작..");
-
-                string versionIniPath = Path.Combine(dicData[CF_DataType.VersionPath], "version.ini");
-
-                if (!File.Exists(versionIniPath))
-                    throw new FileNotFoundException($"version.ini not found at {versionIniPath}");
-
-                // 1. 가장 최신 폴더명 추출
-                var directories = Directory.GetDirectories(dicData[CF_DataType.VersionPath]);
-                string? latestBuildFolder = directories
-                    .Select(Path.GetFileName)
-                    .Where(name => !string.IsNullOrEmpty(name) && name.All(char.IsDigit))
-                    .OrderByDescending(name => name)
-                    .FirstOrDefault();
-
-                if (latestBuildFolder == null)
-                    throw new Exception("빌드 폴더를 찾을 수 없습니다.");
-
-                int buildVersion = int.Parse(latestBuildFolder);
-                Log(txtLog, $"[INFO] 폴더에서 가져온 빌드 버전: {buildVersion}");
-
-                // 2. version.ini의 LatestVersion 읽기
-                string[] lines = File.ReadAllLines(versionIniPath);
-                int currentVersion = 0;
-                int versionLineIndex = -1;
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].StartsWith("LatestVersion"))
-                    {
-                        versionLineIndex = i;
-                        var parts = lines[i].Split('=');
-                        if (parts.Length == 2 && int.TryParse(parts[1].Trim(), out int parsedVersion))
-                        {
-                            currentVersion = parsedVersion;
-                        }
-                        break;
-                    }
-                }
-
-                Log(txtLog, $"[INFO] 현재 LatestVersion: {currentVersion}");
-
-                // 3. 빌드 버전이 더 크면 업데이트
-                if (buildVersion > currentVersion && versionLineIndex != -1)
-                {
-                    lines[versionLineIndex] = $"LatestVersion = {buildVersion}";
-                    File.WriteAllLines(versionIniPath, lines);
-                    Log(txtLog, $"[INFO] version.ini 업데이트 완료: {buildVersion}");
-                }
-                else
-                {
-                    Log(txtLog, $"[INFO] 업데이트 불필요: 기존 버전이 최신 또는 같음 프로세스 계속 진행");
-                }
-
-                // 4. SFTP 업로드
-                using (var sftp = new SftpClient(dicData[CF_DataType.Akamai], dicData[CF_DataType.Akamai_ID], new PrivateKeyFile(dicData[CF_DataType.Akamai_Key])))
-                {
-                    sftp.Connect();
-                    Log(txtLog, "[INFO] Akamai sftp 접근 완료");
-
-                    // version.ini 업로드
-                    using (var stream = new FileStream(versionIniPath, FileMode.Open))
-                    {
-                        sftp.UploadFile(stream, Path.Combine(dicData[CF_DataType.RemotePath], "version.ini"));
-                        Log(txtLog, "[INFO] version.ini 업로드 완료");
-                    }
-
-                    string folderPath = Path.Combine(dicData[CF_DataType.VersionPath], latestBuildFolder);
-                    string remoteFolderPath = Path.Combine(dicData[CF_DataType.RemotePath], latestBuildFolder).Replace("\\", "/");
-
-                    if (!sftp.Exists(remoteFolderPath))
-                        sftp.CreateDirectory(remoteFolderPath);
-
-                    UploadDirectory(txtLog, sftp, folderPath, remoteFolderPath);
-                    sftp.Disconnect();
-                }
-
-                // 5. Akamai Purge: 배치 파일 실행
-                var purgeProcess = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = dicData[CF_DataType.Purge],
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                purgeProcess.Start();
-                string output = purgeProcess.StandardOutput.ReadToEnd();
-                string error = purgeProcess.StandardError.ReadToEnd();
-                purgeProcess.WaitForExit();
-
-                Log(txtLog, $"[INFO] QA_Purge.bat 실행 결과:\r\n{output}");
-
-                if (purgeProcess.ExitCode != 0)
-                {
-                    throw new Exception($"QA_Purge.bat 실행 실패: {error}");
-                }
-
-                Log(txtLog, $"✅ 업로드 및 Purge 완료!", 0, false, true);
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"❌ 오류 발생 : {ex.Message}", 0, false, true);
-                throw new Exception($"❌ 오류 발생 : {ex.Message}");
-            }
-            finally
-            {
-                progressForm.Close();
-            }
-        }
-
-        public static async Task DownloadFromFtp(TextBox txtLog, string ftpUrl, string strID, string strPw, string strlocal, int nType, string strCurVer, string strCfg, Progress_Form progressForm)
-        {
-            Log(txtLog, $"============ [DownloadFromFtp START] {ftpUrl} → {strlocal} ============");
-            try
-            {
-                SetDirectory(strlocal);
-                List<string> zipFiles = new();
-
-                // 1. FTP 파일 목록 가져오기
-                var listRequest = (FtpWebRequest)WebRequest.Create(ftpUrl);
-                listRequest.Method = WebRequestMethods.Ftp.ListDirectory;
-                listRequest.Credentials = new NetworkCredential(strID, strPw);
-
-                // FTP 디렉토리 목록을 읽어 다운로드할 리스트 생성.
-                using (var listResponse = (FtpWebResponse)await listRequest.GetResponseAsync())
-                using (var reader = new StreamReader(listResponse.GetResponseStream()))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        string? file = await reader.ReadLineAsync();
-                        if (string.IsNullOrWhiteSpace(file)) continue;
-
-                        if (file.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string fileNameOnly = Path.GetFileName(file); // "CF_PH_HOST_Patch.zip" 파일 이름만 추출
-
-                            if (nType == 1 && fileNameOnly.Contains("CF_PH_CLIENT_Patch"))
-                            {
-                                Log(txtLog, $"✅ [INFO] 다운로드할 zip 파일 {nType} : {file} : {fileNameOnly}");
-                                zipFiles.Add(fileNameOnly);
-                            }
-                            else if (nType == 2 && (fileNameOnly.Contains("CF_PH_HOST_Patch") || fileNameOnly.Contains("CF_PH_Server_Patch")))
-                            {
-                                Log(txtLog, $"✅ [INFO] 다운로드할 zip 파일 {nType} : {file} : {fileNameOnly}");
-                                zipFiles.Add(fileNameOnly);
-                            }
-                        }
-                    }
-                }
-
-                if (zipFiles.Count == 0)
-                {
-                    Log(txtLog, "[DownloadFromFtp][INFO] 다운로드할 zip 파일이 없습니다.");
-                    throw new Exception($"[DownloadFromFtp][INFO] 다운로드할 zip 파일이 없습니다.");
-                }
-
-                // 2. FTP 다운로드 및 압축 해제
-                foreach (var file in zipFiles)
-                {
-                    string fileUrl = $"{ftpUrl.TrimEnd('/')}/{file}";
-                    string localFilePath = Path.Combine(strlocal, file);
-
-                    Log(txtLog, $"✅ [ZIP DOWNLOAD] {fileUrl} → {localFilePath}");
-                    long totalBytes = 0;
-                    var sizeRequest = (FtpWebRequest)WebRequest.Create(fileUrl);
-                    sizeRequest.Method = WebRequestMethods.Ftp.GetFileSize;
-                    sizeRequest.Credentials = new NetworkCredential(strID, strPw);
-
-                    using (var sizeResponse = (FtpWebResponse)await sizeRequest.GetResponseAsync())
-                    {
-                        totalBytes = sizeResponse.ContentLength;
-                    }
-
-                    var downloadRequest = (FtpWebRequest)WebRequest.Create(fileUrl);
-                    downloadRequest.Method = WebRequestMethods.Ftp.DownloadFile;
-                    downloadRequest.Credentials = new NetworkCredential(strID, strPw);
-
-                    using (var response = (FtpWebResponse)await downloadRequest.GetResponseAsync())
-                    using (var ftpStream = response.GetResponseStream())
-                    using (var fileStream = new FileStream(localFilePath, FileMode.Create))
-                    {
-                        // -------------------------------------------------------------------------------
-                        long downloadedBytes = 0;
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        int currnetPercent = 0;
-
-                        while ((bytesRead = await ftpStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                        {
-                            await fileStream.WriteAsync(buffer, 0, bytesRead);
-                            downloadedBytes += bytesRead;
-
-                            int progressPercent = totalBytes > 0 ? (int)((downloadedBytes * 100L) / totalBytes) : 0;
-                            if (progressPercent != currnetPercent)
-                            {
-                                string ftplog = $"📥 {file}... {progressPercent}% ({downloadedBytes:N0}/{totalBytes:N0} bytes)";
-                                progressForm.UpdateProgress(progressPercent, ftplog);
-                                currnetPercent = progressPercent;
-                            }
-                        }
-                        // -------------------------------------------------------------------------------
-                    }
-
-                    Log(txtLog, $"✅ 다운로드 완료: {file}");
-
-                    string extractTarget = Path.Combine(strlocal, Path.GetFileNameWithoutExtension(file));
-                    SetDirectory(extractTarget);
-                    ZipFile.ExtractToDirectory(localFilePath, extractTarget);
-                    Log(txtLog, $"✅ 압축 해제 완료: {extractTarget}");
-
-                    File.Delete(localFilePath);
-                    Log(txtLog, $"🗑️ ZIP 삭제 완료: {localFilePath}");
-                }
-
-                // 3. cfg 파일 수정
-                VersionChange(txtLog, strCurVer, strCfg);
-            }
-            catch (WebException webEx)
-            {
-                if (webEx.Response is FtpWebResponse ftpResponse)
-                {
-                    Log(txtLog, $"❌ FTP 오류: {ftpResponse.StatusDescription}");
-                    throw new Exception($"❌ FTP 오류: {ftpResponse.StatusDescription}");
-                }
-                else
-                {
-                    Log(txtLog, $"❌ 일반 FTP 예외: {webEx.Message}");
-                    throw new Exception($"❌ 일반 FTP 예외: {webEx.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"❌ 일반 오류: {ex.Message}");
-                throw new Exception($"❌ 일반 오류: {ex.Message}");
-            }
-        }
-
-        public static async Task UpdateLoginIni(TextBox txtLog, string newClientVersion, string strLogin_ServerInfo)
-        {
-            string iniPath = strLogin_ServerInfo;
-
-            if (!File.Exists(iniPath))
-            {
-                Log(txtLog, $"[ERROR] Login ini 파일 경로가 존재하지 않습니다: {iniPath}");
-                return;
-            }
-
-            var lines = File.ReadAllLines(iniPath);
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i].Trim();
-                if (line.StartsWith("#")) continue;
-
-                if (line.Contains("ClientVersion"))
-                {
-                    var verParts = line.Split('=', (char)2, (char)StringSplitOptions.RemoveEmptyEntries);
-                    string oldVer = verParts[1].Trim();
-                    if (verParts.Length == 2 && oldVer != newClientVersion)
-                    {
-                        lines[i] = $"    ClientVersion={newClientVersion}";
-                        Log(txtLog, $"[INFO] ClientVersion 업데이트: {oldVer} → {newClientVersion}");
-                        File.WriteAllLines(iniPath, lines);
-                    }
-                    break;
-                }
-            }
-        }
-
-        static async void VersionChange(TextBox txtLog, string strCurVer, string strCfg)
-        {
-            // cfg Version 파일 수정
-            string cfgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, strCfg);
-            if (File.Exists(cfgPath))
-            {
-                var lines = File.ReadAllLines(cfgPath);
-                bool updated = false;
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Trim().StartsWith("Version "))
-                    {
-                        string[] parts = lines[i].Split(' ', (char)2, (char)StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length == 2 && parts[1].Trim() != strCurVer)
-                        {
-                            Log(txtLog, $"[INFO] VersionChange .cfg 업데이트: {lines[i]} → Version {strCurVer}");
-                            lines[i] = $"Version {strCurVer}";
-                            updated = true;
-                        }
-                        break;
-                    }
-                }
-
-                if (updated)
-                    File.WriteAllLines(cfgPath, lines);
-            }
-        }
-
-        public static async Task SVNUpdateAsync(TextBox txtLog, string svnPath)
-        {
-            Log(txtLog, $"============ [SVN Update] 시작: {svnPath} ============");
-
-            using var progressForm = new Progress_Form("SVN Update");
-            progressForm.Show();
-            await Task.Delay(5000); // UI 렌더링 대기
-
-            
-
-            try
-            {
-                await RunSvnCommandAsync(txtLog, "update", svnPath, progressForm);
-                //    //progressForm.UpdateProgress(10, "SVN 프로세스 시작..");
-
-                //    var psi = new ProcessStartInfo
-                //    {
-                //        FileName = "svn",
-                //        Arguments = $"update \"{svnPath}\"",
-                //        RedirectStandardOutput = true,
-                //        RedirectStandardError = true,
-                //        UseShellExecute = false,
-                //        CreateNoWindow = true
-                //    };
-
-                //    using var process = Process.Start(psi);
-                //    if (process == null)
-                //    {
-                //        Log(txtLog, "[SVN Update ERROR] 프로세스를 시작할 수 없습니다.");
-                //        return;
-                //    }
-
-                //    await Task.Delay(1000);
-                //    progressForm.UpdateProgress(50, "SVN 데이터 수신 중...");
-
-                //    string stdout = await process.StandardOutput.ReadToEndAsync();
-                //    string stderr = await process.StandardError.ReadToEndAsync();
-
-                //    process.WaitForExit();
-
-
-                //    progressForm.UpdateProgress(80, "SVN 결과 분석 중...");
-                //    await Task.Delay(5000);
-
-                //    if (process.ExitCode != 0)
-                //    {
-                //        Log(txtLog, $"[SVN Update ERROR] 종료코드: {process.ExitCode}\n{stderr}");
-                //        return;
-                //    }
-
-                //    if (!string.IsNullOrWhiteSpace(stdout))
-                //    {
-                //        Log(txtLog, $"[SVN Update] 완료됨 : {stdout.Trim()}");
-                //    }
-                //    else
-                //    {
-                //        Log(txtLog, "[SVN Update] 변경 사항 없음.");
-                //    }
-
-                //    progressForm.UpdateProgress(100, "SVN Update 완료");
-                //    await Task.Delay(5000); // 사용자에게 완료 화면 잠깐 표시
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"[SVN Update EXCEPTION] {ex.Message}");
-                throw new Exception($"❌ [SVN Update EXCEPTION] : {ex.Message}");
-            }
-            finally
-            {
-                progressForm.Close();
-            }
-        }
-
-
-
-
-        public static async Task CDNSVNCommit(TextBox txtLog, string strSVNPath, Dictionary<CF_DataType, string> dicData, string strParam, bool bCopy = true, int nType = 0, string strDate = "0000")
-        {
-            Log(txtLog, $"============ [CDNSVNCommit] Start Commit ============");
-
-            using var progressForm = new Progress_Form("SVN 커밋");
-            progressForm.Show();
-            await Task.Delay(5000); // UI 렌더링 여유
-            progressForm.UpdateProgress(10, "SVN 변경 사항 확인 중...");
-
-            try
-            {
-                var parts = strParam.Split('_');
-                string commitMessage = $"v{parts[3]}_{parts[4]}";
-
-                // 복사 (덮어쓰기)
-                if (bCopy)
-                {
-                    string sourcePath = nType == 0
-                        ? $@"{dicData[CF_DataType.TargetPath]}\{commitMessage}"
-                        : $@"{dicData[CF_DataType.TargetPath]}\client_{strDate}_{parts[3]}_{parts[4]}";
-
-                    CopyAllFiles(txtLog, sourcePath, strSVNPath);
-                    Log(txtLog, $"[INFO] SVN {sourcePath} -> {strSVNPath} 복사 완료");
-                }
-
-                //var statusProcess = new ProcessStartInfo
-                //{
-                //    FileName = "svn",
-                //    Arguments = $"status \"{strSVNPath}\"",
-                //    RedirectStandardOutput = true,
-                //    RedirectStandardError = true,
-                //    UseShellExecute = false,
-                //    CreateNoWindow = true
-                //};
-
-                string output = string.Empty;
-                bool hasChanges = false;
-
-                using (var proc = new Process { StartInfo = GetProcessStartInfo("status", strSVNPath) })
-                {
-                    proc.Start();
-                    output = await proc.StandardOutput.ReadToEndAsync();
-                    proc.WaitForExit();
-                }
-
-                if (string.IsNullOrWhiteSpace(output))
-                {
-                    Log(txtLog, "[AutoSvnCommit INFO] 변경 사항이 없습니다. 커밋 생략.");
-                    return;
-                }
-
-                Log(txtLog, $"[AutoSvnCommit INFO] 변경 감지됨:\n{output}");
-                var statusLines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                int total = statusLines.Length;
-                int processed = 0;
-
-                foreach (string line in statusLines)
-                {
-                    if (line.Length < 9) continue;
-
-                    char status = line[0];
-                    string filePath = line.Substring(8).Trim();
-
-                    switch (status)
-                    {
-                        case '?':
-                            await RunSvnCommandAsync(txtLog, $"add" ,$"{filePath}", progressForm);
-                            hasChanges = true;
-                            break;
-                        case '!':
-                            await RunSvnCommandAsync(txtLog, $"delete" ,$"{filePath}", progressForm);
-                            hasChanges = true;
-                            break;
-                        case 'M':
-                        case 'A':
-                        case 'D':
-                            hasChanges = true;
-                            break;
-                    }
-
-                    processed++;
-                    int percent = 10 + (int)((processed / (float)total) * 60); // 10%~70% 진행 표시
-                    progressForm.UpdateProgress(percent, $"SVN 상태 처리 중... ({processed}/{total})");
-                }
-
-                if (hasChanges)
-                {
-                    progressForm.UpdateProgress(80, "SVN 커밋 실행 중...");
-                    await RunSvnCommandAsync(txtLog, $"commit" ,$"{strSVNPath}\" -m \"{commitMessage}\"", progressForm);
-                    Log(txtLog, $"[AutoSvnCommit INFO] SVN 자동 커밋 완료: {commitMessage}");
-                }
-                else
-                {
-                    Log(txtLog, "[AutoSvnCommit INFO] 최종적으로 커밋할 변경 사항이 없습니다.");
-                }
-
-                progressForm.UpdateProgress(100, "SVN 커밋 작업 완료");
-                await Task.Delay(5000);
-            }
-            catch (Exception ex)
-            {
-                Log(txtLog, $"❌[CDNSVNCommit] 커밋 중 오류 발생: {ex.Message}");
-                throw new Exception($"❌ [CDNSVNCommit EXCEPTION] : {ex.Message}");
-            }
-            finally
-            {
-                progressForm.Close();
-            }
-        }
-
-        static async Task RunSvnCommandAsync(TextBox txtLog, string args, string strSVNPath, Progress_Form progressForm)
-        {
-            using var proc = new Process { StartInfo = GetProcessStartInfo(args, strSVNPath) };
-            proc.Start();
-
-            progressForm.UpdateProgress(50, $"[RunSvnCommand SVN] {args} 데이터 수신 중...");
-            var outputTask = proc.StandardOutput.ReadToEndAsync();
-            var errorTask = proc.StandardError.ReadToEndAsync();
-
-            proc.WaitForExit();
-            progressForm.UpdateProgress(80, $"[RunSvnCommand SVN] {args} 결과 분석 중...");
-            await Task.Delay(5000);
-
-            string output = await outputTask;
-            string error = await errorTask;
-
-            if (!string.IsNullOrWhiteSpace(output))
-                Log(txtLog, $"[RunSvnCommand SVN] 완료됨 \r\n {output.Trim()}");
-
-            if (!string.IsNullOrWhiteSpace(error))
-                Log(txtLog, $"[RunSvnCommand SVN-ERR] \r\n {error.Trim()}");
-
-            if (proc.ExitCode != 0)
-                Log(txtLog, $"[RunSvnCommand ERROR] SVN 명령 실패 \r\n (ExitCode: {proc.ExitCode})");
-        }
-        static ProcessStartInfo GetProcessStartInfo(string arguments, string strSVNPath)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "svn",
-                Arguments = $"{arguments} \"{strSVNPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            return psi;
-        }
-
-        #endregion CF_Tool
 
         public static void Log(TextBox txtLog, string message, int nType = 0, bool overwrite = false, bool bBox = false)
         {

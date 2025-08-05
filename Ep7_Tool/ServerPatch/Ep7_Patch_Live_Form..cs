@@ -87,19 +87,19 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 Padding = new Padding(5)
             };
 
-            m_btnDown = new Button { Text = "서버다운(로그재시작)", Width = 150 };
+            m_btnDown = SG_Common.GetButton("서버다운(로그재시작)", Color.AliceBlue, 150);
             m_btnDown.Click += ServerDown_Click;
 
-            m_btnLogDown = new Button { Text = "서버다운(로그다운)", Width = 150 };
+            m_btnLogDown = SG_Common.GetButton("서버다운(로그다운)", Color.AliceBlue, 150);
             m_btnLogDown.Click += LogServerDown_Click;
 
-            m_btnUp = new Button { Text = "서버업", Width = 100 };
+            m_btnUp = SG_Common.GetButton("서버업", Color.AliceBlue);
             m_btnUp.Click += ServerUp_Click;
 
-            m_btnDockerCheck = new Button { Text = "모니터링", Width = 100 };
+            m_btnDockerCheck = SG_Common.GetButton("모니터링", Color.AliceBlue);
             m_btnDockerCheck.Click += Monitoring_Click;
 
-            m_btnRollingPatch = new Button { Text = "롤링패치", Width = 100 };
+            m_btnRollingPatch = SG_Common.GetButton("롤링패치", Color.AliceBlue);
             m_btnRollingPatch.Click += Monitoring_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] {m_btnDown, m_btnLogDown, m_btnUp, m_btnDockerCheck, m_btnRollingPatch});

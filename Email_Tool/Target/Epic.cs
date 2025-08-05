@@ -70,10 +70,10 @@
                 Dock = DockStyle.Fill,
             };
 
-            m_btnUp = new Button { Text = "Open OutLook", Width = 100 , BackColor = Color.LightGreen };
+            m_btnUp = SG_Common.GetButton("Open OutLook", Color.AliceBlue);
             m_btnUp.Click += ServerUp_Click;
 
-            m_btnAddSqlPath = new Button { Text = "Patch", Width = 150, Margin = new Padding(5) , BackColor = Color.LightGreen };
+            m_btnAddSqlPath = SG_Common.GetButton("Patch", Color.AliceBlue, 150);
             m_btnAddSqlPath.Click += (s, e) =>
             {
                 AddSqlPathPanel();

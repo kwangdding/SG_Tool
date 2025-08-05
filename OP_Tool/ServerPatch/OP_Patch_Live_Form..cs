@@ -47,16 +47,16 @@ namespace SG_Tool.OP_Tool.ServerPatch
                 BackColor = Color.LightPink
             };
 
-            m_btnDown = new Button { Text = "서버다운", Width = 100 };
+            m_btnDown = SG_Common.GetButton("서버다운", Color.AliceBlue);
             m_btnDown.Click += ServerDown_Click;
 
-            m_btnUp = new Button { Text = "서버업", Width = 100 };
+            m_btnUp = SG_Common.GetButton("서버업", Color.AliceBlue);
             m_btnUp.Click += ServerUp_Click;
 
-            m_btnDockerCheck = new Button { Text = "도커체크", Width = 100 };
+            m_btnDockerCheck = SG_Common.GetButton("도커체크", Color.AliceBlue);
             m_btnDockerCheck.Click += DockerCheck_Click;
 
-            m_btnUserCheck = new Button { Text = "유저체크", Width = 100 };
+            m_btnUserCheck = SG_Common.GetButton("유저체크", Color.AliceBlue);
             m_btnUserCheck.Click += UserCheck_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] {m_btnDown, m_btnUp, m_btnDockerCheck, m_btnUserCheck});
@@ -349,10 +349,10 @@ namespace SG_Tool.OP_Tool.ServerPatch
                         {
                             if (m_dicTagIp.TryGetValue(strTag, out var serverIp))
                             {
-                                if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
-                                {
-                                    await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
-                                }
+                                // if (!SG_Common.Servers.ContainsKey(serverIp) || !SG_Common.Servers[serverIp].IsConnected)
+                                // {
+                                //     await SG_Common.ConnectServersAsync(serverIp, m_txtLog, false, tag, m_userData.User, m_userData.Pass);
+                                // }
 
                                 nCount++;
 

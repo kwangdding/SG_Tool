@@ -66,10 +66,10 @@ namespace SG_Tool.L9_Tool.AWS
             };
             m_comboBox.SelectedIndexChanged += ServerChangeList;
 
-            m_btnUpdateImage = SG_Common.GetButton("Update Image");
-            m_btnUpdateAll = SG_Common.GetButton("Update ECS");
-            m_btnECS_Off = SG_Common.GetButton("ECS Off");
-            m_btnECS_On = SG_Common.GetButton("ECS On");
+            m_btnUpdateImage = SG_Common.GetButton("Update Image", Color.AliceBlue);
+            m_btnUpdateAll = SG_Common.GetButton("Update ECS", Color.AliceBlue);
+            m_btnECS_Off = SG_Common.GetButton("ECS Off", Color.AliceBlue);
+            m_btnECS_On = SG_Common.GetButton("ECS On", Color.AliceBlue);
 
             //m_btnECS_On
             m_btnUpdateImage.Click += UpdateImage_Click;
