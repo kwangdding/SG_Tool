@@ -1,3 +1,5 @@
+using Amazon.Runtime;
+
 namespace SG_Tool.Log
 {
     // public class SystemLog_Form : Form
@@ -248,54 +250,142 @@ namespace SG_Tool.Log
         /// </summary>
         public static void LogMessage(TextBox txtLog, string message, int nType = 0, bool overwrite = false)
         {
-            if (txtLog == null) return;
-
-            string timestamp = DateTime.Now.ToString("MM-dd HH:mm:ss");
-            string logMessage = string.Empty;
-
-            switch (nType)
+            try
             {
-                case 0:
-                default:
-                    logMessage = $"{timestamp,-15} - {message,-80}\r\n";
-                    break;
-                case 1:
-                    int totalWidth = 40;
-                    int padding = (totalWidth - message.Length) / 2;
-                    string centeredMessage = message.PadLeft(message.Length + padding).PadRight(totalWidth);
-                    message = $"============= {centeredMessage,-40} =============";
-                    logMessage = $"{timestamp,-15} - {message,-80}\r\n";
-                    break;
-            }
+                if (txtLog == null) return;
 
-            // UI 로그 표시
-            if (overwrite)
-            {
-                var lines = txtLog.Lines.ToList();
-                if (lines.Count > 0)
+                string timestamp = DateTime.Now.ToString("MM-dd HH:mm:ss");
+                string logMessage = string.Empty;
+
+                //switch (nType)
+                //{
+                //    case 0:
+                //    default:
+                //        logMessage = $"{timestamp,-15} - {message,-80}\r\n";
+                //        break;
+                //    case 1:
+                //        logMessage = $"{message}\r\n";
+                //        break;
+                //}
+
+                switch (nType)
                 {
-                    lines[lines.Count - 1] = logMessage.TrimEnd();
-                    txtLog.Lines = lines.ToArray();
+                    case 0:
+                    default:
+                        logMessage = $"{timestamp,-15} - {message,-80}\r\n";
+                        break;
+                    case 1:
+                        int totalWidth = 40;
+                        int padding = (totalWidth - message.Length) / 2;
+                        string centeredMessage = message.PadLeft(message.Length + padding).PadRight(totalWidth);
+                        message = $"============= {centeredMessage,-40} =============";
+                        //logMessage = $"{timestamp,-15} - {message,-80}\r\n";
+                        logMessage = $"{message}\r\n";
+                        break;
+                }
+
+                if (overwrite)
+                {
+                    var lines = txtLog.Lines.ToList();
+                    if (lines.Count > 0)
+                    {
+                        lines[lines.Count - 1] = logMessage.TrimEnd(); // 마지막 줄 업데이트
+                        txtLog.Lines = lines.ToArray();
+                    }
+                    else
+                    {
+                        if (txtLog.InvokeRequired)
+                        {
+                            txtLog.Invoke(() => txtLog.AppendText(logMessage));
+                        }
+                        else
+                        {
+                            txtLog.AppendText(logMessage);
+                        }
+                    }
                 }
                 else
                 {
-                    txtLog.AppendText(logMessage);
+                    logMessage = logMessage.Replace("\r\n", Environment.NewLine);
+                    if (txtLog.InvokeRequired)
+                    {
+                        txtLog.Invoke(() => txtLog.AppendText(logMessage));
+                    }
+                    else
+                    {
+                        txtLog.AppendText(logMessage);
+                    }
+                }
+
+                // 버퍼 저장
+                lock (logLock)
+                {
+                    m_strlogMessage += logMessage;
+                }
+
+                // 즉시 저장
+                SaveImmediate(logMessage);
+            }
+            catch (Exception ex)
+            {
+                lock (logLock)
+                {
+                    m_strlogMessage += $"[LogMessage ERROR] 예외 발생: {ex.Message}"; // 로그 메시지 추가
+                    SaveImmediate(m_strlogMessage);
                 }
             }
-            else
-            {
-                logMessage = logMessage.Replace("\r\n", Environment.NewLine);
-                txtLog.AppendText(logMessage);
-            }
-
-            // 버퍼 저장
-            lock (logLock)
-            {
-                m_strlogMessage += logMessage;
-            }
-
-            // 즉시 저장
-            SaveImmediate(logMessage);
         }
+
+        //public static void LogMessage(TextBox txtLog, string message, int nType = 0, bool overwrite = false)
+        //{
+        //    if (txtLog == null) return;
+
+        //    string timestamp = DateTime.Now.ToString("MM-dd HH:mm:ss");
+        //    string logMessage = string.Empty;
+
+        //    switch (nType)
+        //    {
+        //        case 0:
+        //        default:
+        //            logMessage = $"{timestamp,-15} - {message,-80}\r\n";
+        //            break;
+        //        case 1:
+        //            int totalWidth = 40;
+        //            int padding = (totalWidth - message.Length) / 2;
+        //            string centeredMessage = message.PadLeft(message.Length + padding).PadRight(totalWidth);
+        //            message = $"============= {centeredMessage,-40} =============";
+        //            logMessage = $"{timestamp,-15} - {message,-80}\r\n";
+        //            break;
+        //    }
+
+        //    // UI 로그 표시
+        //    if (overwrite)
+        //    {
+        //        var lines = txtLog.Lines.ToList();
+        //        if (lines.Count > 0)
+        //        {
+        //            lines[lines.Count - 1] = logMessage.TrimEnd();
+        //            txtLog.Lines = lines.ToArray();
+        //        }
+        //        else
+        //        {
+        //            txtLog.AppendText(logMessage);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        logMessage = logMessage.Replace("\r\n", Environment.NewLine);
+        //        txtLog.AppendText(logMessage);
+        //    }
+
+        //    // 버퍼 저장
+        //    lock (logLock)
+        //    {
+        //        m_strlogMessage += logMessage;
+        //    }
+
+        //    // 즉시 저장
+        //    SaveImmediate(logMessage);
+        //}
     }
 }

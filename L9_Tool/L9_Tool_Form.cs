@@ -23,6 +23,7 @@ namespace SG_Tool.L9_Tool
                 Dock = DockStyle.Fill
             };
 
+           
             // 각 탭 페이지 생성
             m_tabServerPatch_QA = new TabPage("ECS QA");
             m_tabJsonUpdate = new TabPage("Json Update");
@@ -31,11 +32,10 @@ namespace SG_Tool.L9_Tool
 
             // 각 탭에 대응되는 사용자 컨트롤 추가
 
-            m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form { Dock = DockStyle.Fill });
-            m_tabJsonUpdate.Controls.Add(new JsonUpdate { Dock = DockStyle.Fill });
-            m_tabDBUpload.Controls.Add(new DBUpload { Dock = DockStyle.Fill });
-
-            m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form { Dock = DockStyle.Fill });
+            m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+            m_tabJsonUpdate.Controls.Add(new JsonUpdate(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+            m_tabDBUpload.Controls.Add(new DBUpload(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+            m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
 
             // 탭 추가
             m_tabControl.TabPages.AddRange(new[] {

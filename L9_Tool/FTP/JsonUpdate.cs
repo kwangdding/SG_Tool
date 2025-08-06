@@ -15,17 +15,18 @@ namespace SG_Tool.L9_Tool.FTP
         TextBox m_txtParameter = null!;
         TextBox m_txtLog = null!;
 
-        const string c_strConfigFile = $@"L9\l9_Data.cfg";
+        string m_strConfigFile = $@"L9\l9_Data.cfg";
         Dictionary<L9FTP_DataType, string> m_dicData = new Dictionary<L9FTP_DataType, string>();
 
-        public JsonUpdate()
+        public JsonUpdate(EnLoad9_Type enLoad9_Type)
         {
+            m_strConfigFile = $@"{enLoad9_Type}\L9_Data.cfg";
             InitializeUI();
         }
 
         void InitializeUI()
         {
-            m_bSetting = SG_Common.SetPatchData(c_strConfigFile, m_dicData);
+            m_bSetting = SG_Common.SetPatchData(m_strConfigFile, m_dicData);
             Text = "L9 Manager";
             Size = new Size(900, 800);
             MinimumSize = new Size(700, 500);
@@ -178,7 +179,7 @@ namespace SG_Tool.L9_Tool.FTP
                 await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9FTP_DataType.S3UploadBucket], strKey);
 
                 m_dicData[L9FTP_DataType.JsonUpdate] = m_txtParameter.Text.Trim();
-                SG_Common.SaveData(m_txtLog, c_strConfigFile, m_dicData);
+                SG_Common.SaveData(m_txtLog, m_strConfigFile, m_dicData);
                 SystemLog_Form.LogMessage(m_txtLog, $"✅ [UploadFileToS3] 업로드 완료");
 
                 // 5. 다운 받은 Operation.ProjectL.Protocol.json 파일 폴더 삭제
@@ -272,6 +273,17 @@ namespace SG_Tool.L9_Tool.FTP
 
             File.WriteAllLines(filePath, filteredLines);
             SystemLog_Form.LogMessage(m_txtLog, $"🎉[RemoveSpecificKeys] {m_strSelectedServer} 환경 서버 시간 변경 관련 키 삭제 완료");
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // JsonUpdate
+            // 
+            this.Name = "JsonUpdate";
+            this.ResumeLayout(false);
+
         }
     }
 }

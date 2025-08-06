@@ -23,19 +23,21 @@ namespace SG_Tool.L9_Tool.AWS
         TableLayoutPanel m_checkBoxPanel = null!;
         CancellationTokenSource m_statusCts = null;
         Dictionary<EcsDataEnum, EcsData> m_dicecsData = new Dictionary<EcsDataEnum, EcsData>();
-        const string c_strConfigFile = $@"L9\L9_LiveData.cfg";
+        string m_strConfigFile = $@"L9\L9_LiveData.cfg";
         Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
         Dictionary<EcsDataEnum, TextBox[]> m_dicParameters = new Dictionary<EcsDataEnum, TextBox[]>();
-
-        public EcsPatch_Live_Form()
+        EnLoad9_Type m_enLoad9_Type;
+        public EcsPatch_Live_Form (EnLoad9_Type enLoad9_Type)
         {
+            m_enLoad9_Type = enLoad9_Type;
+            m_strConfigFile = $@"{enLoad9_Type}\L9_LiveData.cfg";
             InitializeUI();
         }
 
         void InitializeUI()
         {
             SG_Common.Log(m_txtLog, $"✅ InitializeUI");
-            m_bSetting = SG_Common.SetPatchL9Data(c_strConfigFile, m_dicData);
+            m_bSetting = SG_Common.SetPatchL9Data(m_strConfigFile, m_dicData);
             BackColor = Color.LightCyan;
 
             // 상단 버튼 및 파라미터 영역
@@ -45,7 +47,8 @@ namespace SG_Tool.L9_Tool.AWS
                 Dock = DockStyle.Top,
                 Padding = new Padding(5),
                 AutoSize = true,
-                BackColor = Color.LightCyan
+                //BackColor = Color.LightCyan
+                BackColor = m_enLoad9_Type == EnLoad9_Type.L9 ? Color.LightCyan : Color.LightPink
             };
 
             m_btnUpdateImage = SG_Common.GetButton("Update Image", Color.AliceBlue);
@@ -129,6 +132,7 @@ namespace SG_Tool.L9_Tool.AWS
             };
 
             // AWS 자격 증명 설정
+            //SystemLog_Form.LogMessage(m_txtLog, $"[LoadServerList()] AwsAccessKey : {m_dicData[L9DataType.AwsAccessKey]}, AwsSecretKey : {m_dicData[L9DataType.AwsSecretKey]}");
             m_ecsClient = new AmazonECSClient(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], config);
             // ===========================================================
 
@@ -252,6 +256,8 @@ namespace SG_Tool.L9_Tool.AWS
                     if (token.IsCancellationRequested) break;
                     if (m_ecsClient == null) return;
 
+                    SG_Common.Log(m_txtLog, $"[UpdateStatusAsync] Live ECS Start");
+
                     for (int i = 0; i < ecsDatalist.Count; i++)
                     {
                         var ecsData = ecsDatalist[i];
@@ -259,12 +265,14 @@ namespace SG_Tool.L9_Tool.AWS
                         var countBox = countBoxlist[i];
                         var statusLabel = statusLabellist[i];
 
+                        //SG_Common.Log(m_txtLog, $"[UpdateStatusAsync] Cluster : {ecsData.Cluster} (1)");
+
                         var describeResponse = await m_ecsClient.DescribeServicesAsync(new DescribeServicesRequest
                         {
                             Cluster = ecsData.Cluster,
                             Services = new List<string> { ecsData.Service }
                         });
-
+                        
                         var taskDefResponse = await m_ecsClient.DescribeTaskDefinitionAsync(new DescribeTaskDefinitionRequest
                         {
                             TaskDefinition = ecsData.Task,
@@ -272,7 +280,7 @@ namespace SG_Tool.L9_Tool.AWS
                         var taskDef = taskDefResponse.TaskDefinition;
                         string imageTag = taskDef.ContainerDefinitions.Count > 0 ? taskDef.ContainerDefinitions[0].Image : "0000_00_00_0";
 
-                        var serviceDesc = describeResponse.Services.FirstOrDefault();
+                        Service serviceDesc = describeResponse.Services.FirstOrDefault();
                         string currentStatus = "서비스 정보 없음";
 
                         if (serviceDesc != null)
@@ -300,7 +308,7 @@ namespace SG_Tool.L9_Tool.AWS
                 }
                 catch (Exception ex)
                 {
-                    SG_Common.Log(m_txtLog, $"❌ 오류 발생: {ex.Message}");
+                    SG_Common.Log(m_txtLog, $"❌ [UpdateStatusAsync] 오류 발생: {ex.Message}");
                     break;
                 }
             }

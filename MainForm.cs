@@ -1,7 +1,7 @@
-﻿//using SG_Tool.CF_Tool;
-using SG_Tool.Email_Tool;
+﻿using SG_Tool.Email_Tool;
 using SG_Tool.EP7_Tool;
 using SG_Tool.L9_Tool;
+using SG_Tool.L9_Asia_Tool;
 using SG_Tool.Log;
 using SG_Tool.OP_Tool;
 using System.Drawing.Drawing2D;
@@ -19,7 +19,7 @@ namespace SG_Tool
 
         void InitializeComponent()
         {
-            this.Text = "SG_Tool - v1.0.2";
+            this.Text = "SG_Tool - v1.0.4";
             this.Width = 1000;
             this.Height = 900;
             this.MinimumSize = new Size(600, 400);
@@ -43,17 +43,17 @@ namespace SG_Tool
             };
             imageList.Images.Add("email", ResizeIcon(Properties.Resources.icon_email.ToBitmap()));
             imageList.Images.Add("l9", ResizeIcon(Properties.Resources.icon_l9.ToBitmap()));
+            imageList.Images.Add("l9_Asia", ResizeIcon(Properties.Resources.icon_l9.ToBitmap()));
             imageList.Images.Add("op", ResizeIcon(Properties.Resources.icon_op.ToBitmap()));
             imageList.Images.Add("ep7", ResizeIcon(Properties.Resources.icon_ep7.ToBitmap()));
-            //imageList.Images.Add("cf", ResizeIcon(Properties.Resources.icon_cf.ToBitmap()));
             tabControl.ImageList = imageList;
 
             // 탭 생성
             tabControl.TabPages.Add(new TabPage(" Email") { ImageIndex = 0, Controls = { new Email_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 로드나인") { ImageIndex = 1, Controls = { new L9_Tool_Form { Dock = DockStyle.Fill } } });
+            tabControl.TabPages.Add(new TabPage(" 로드나인 아시아") { ImageIndex = 1, Controls = { new L9_Asia_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 아우터플레인") { ImageIndex = 2, Controls = { new OP_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 에픽세븐") { ImageIndex = 3, Controls = { new EP7_Tool_Form { Dock = DockStyle.Fill } } });
-            //tabControl.TabPages.Add(new TabPage(" 크로스파이어") { ImageIndex = 4, Controls = { new CF_Tool_Form { Dock = DockStyle.Fill } } });
 
             // 탭 커스텀 그리기
             tabControl.DrawItem += (s, e) =>

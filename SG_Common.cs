@@ -2,23 +2,17 @@
 using Amazon.ECS;
 using Amazon.ECS.Model;
 using Amazon.S3.Transfer;
-using OfficeOpenXml.Utils;
 using Renci.SshNet;
 using SG_Tool.Log;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Net;
 using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Task = System.Threading.Tasks.Task;
 
 namespace SG_Tool
 {
     public enum EnUpdateType { LoginIni, DataCfg }
-    public enum EnProjectType { EP7, L9, Email, CF, OP }
+    public enum EnProjectType { EP7, L9, Email, OP }
     public enum EnCommandType { Command, UserCheck, Monitoring, Scripts }
-
     public enum EP7_CommandType { Verinfo, Game, Battle, Log, Chan }
     public enum EP7_EnRegion { Asia, Europ, Global, Japan, Korea }
     public enum EcsDataEnum { front, auth, noti, op_api, op_front, log }
@@ -26,8 +20,7 @@ namespace SG_Tool
     public enum L9FTP_DataType { S3FileBucket, S3UploadBucket, AwsAccessKey, AwsSecretKey, JsonUpdate, DBUpload, NX3URL }
     public enum Email_DataType { Name, MailMain }
     public enum CF_DataType { URL, ID, PW, Akamai, Akamai_ID, Akamai_Key, LocalPath, TargetPath, Version, PatchLocalPath, PatchPath, Login_ServerInfo, WinPath, Patcher, Purge, RemotePath, SVNPath, VersionPath }
-
-    
+    public enum EnLoad9_Type { L9, L9_Asia }
 
     public class EcsData
     {
@@ -59,7 +52,7 @@ namespace SG_Tool
         public bool IsCountdown { get; set; }
         public string User { get; set; }
         public string Pass { get; set; }
-        public UserData(string user, string pass)
+        public UserData(string user = "", string pass = "")
         {
             User = user;
             Pass = pass;
@@ -172,7 +165,7 @@ namespace SG_Tool
         public static UserData LoadCredentials(TextBox txtLog, EnProjectType enProjectType)
         {
             string credentialsPath = string.Empty;
-            UserData userData = null!;
+            UserData userData = new UserData();
             switch (enProjectType)
             {
                 case EnProjectType.OP:
@@ -541,6 +534,7 @@ namespace SG_Tool
 
         public static bool SetPatchL9Data(string configFile, Dictionary<L9DataType, string> dicData)
         {
+
             if (File.Exists(configFile))
             {
                 var lines = File.ReadAllLines(configFile);

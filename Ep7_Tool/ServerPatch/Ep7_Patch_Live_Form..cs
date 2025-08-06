@@ -15,8 +15,8 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         Label m_lblRegionSelect = null!;
 
         FlowLayoutPanel m_flowPanel = null!;
-        FlowLayoutPanel m_checkBoxPanel = null!;
-        FlowLayoutPanel m_textBoxPanel = null!;
+        FlowLayoutPanel m_checkRegionPanel = null!;
+        FlowLayoutPanel m_checkTextServerPanel = null!;
 
         string m_strServerPath = string.Empty; // 서버 목록 파일 경로
         UserData m_userData = new UserData(string.Empty, string.Empty);
@@ -100,7 +100,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             m_btnDockerCheck.Click += Monitoring_Click;
 
             m_btnRollingPatch = SG_Common.GetButton("롤링패치", Color.AliceBlue);
-            m_btnRollingPatch.Click += Monitoring_Click;
+            m_btnRollingPatch.Click += RollingPatch_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] {m_btnDown, m_btnLogDown, m_btnUp, m_btnDockerCheck, m_btnRollingPatch});
 
@@ -136,7 +136,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 Margin = new Padding(5)
             };
 
-            m_checkBoxPanel = new FlowLayoutPanel
+            m_checkRegionPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
@@ -151,7 +151,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 Margin = new Padding(5)
             };
 
-            m_textBoxPanel = new FlowLayoutPanel
+            m_checkTextServerPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
@@ -159,9 +159,9 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             };
 
             rightLayout.Controls.Add(m_lblRegionSelect);
-            rightLayout.Controls.Add(m_checkBoxPanel);
+            rightLayout.Controls.Add(m_checkRegionPanel);
             rightLayout.Controls.Add(m_lblServerSelect);
-            rightLayout.Controls.Add(m_textBoxPanel);
+            rightLayout.Controls.Add(m_checkTextServerPanel);
 
             // ▶ 조립
             mainLayout.Controls.Add(leftLayout, 0, 0);     // 왼쪽: 버튼 + 로그
@@ -174,13 +174,13 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             LoadServerList();
         }
 
-
         void LoadServerList()
         {
             // 라이브 서버 정보 로드
             m_strServerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EP7", $"EP7_Serverlist_Live.cfg");
 
-            m_checkBoxPanel.Controls.Clear();
+            m_checkRegionPanel.Controls.Clear();
+            m_checkTextServerPanel.Controls.Clear();
             m_dicTagIp.Clear();
             m_dicServerParameters.Clear();
 
@@ -211,7 +211,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                             AutoSize = true
                         };
                         panel.Controls.Add(checkRegionBox);
-                        m_checkBoxPanel.Controls.Add(panel);
+                        m_checkRegionPanel.Controls.Add(panel);
                     }
                 }
 
@@ -219,10 +219,17 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 {
                     var lbTag = new Label
                     {
-                        Text = $"{tag, -10}",
+                        Text = $"{tag}",
                         AutoSize = true,
                         BorderStyle = BorderStyle.Fixed3D,
                         Anchor = AnchorStyles.Left
+                    };
+
+                    var checkServerBox = new CheckBox
+                    {
+                        Text = $"{tag}",
+                        AutoSize = true,
+                        Checked = true
                     };
 
                     var textBox = new TextBox
@@ -244,15 +251,17 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                         AutoSize = true
                     };
 
-                    panel.Controls.Add(lbTag);
+                    //panel.Controls.Add(lbTag);
+                    panel.Controls.Add(checkServerBox);
                     panel.Controls.Add(textBox);
 
-                    m_textBoxPanel.Controls.Add(panel);
+                    m_checkTextServerPanel.Controls.Add(panel);
                     m_dicServerParameters.Add(tag, textBox);
                 }
             }
 
-            m_checkBoxPanel.Refresh();
+            m_checkRegionPanel.Refresh();
+            m_checkTextServerPanel.Refresh();
             SG_Common.ConnectStart(m_txtLog, m_dicTagIp, m_userData);
         }
 //===========================================================================================
@@ -275,60 +284,36 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             }
         }
 
+        enum ButtonType { ServerDown, LogServerDown, ServerUp, Monitoring, RollingPatch }
+
         async void ServerDown_Click(object? sender, EventArgs e)
         {
             if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그재시작)", m_userData.IsConnect, m_userData.IsCountdown))
-                await ServerStopAsync(false);
+                await Task.WhenAll(GetTaskList(ButtonType.ServerDown, false));
         }
 
         async void LogServerDown_Click(object? sender, EventArgs e)
         {            
             if (SG_Common.ClickCheck(m_txtLog, "서버다운(로그종료)", m_userData.IsConnect, m_userData.IsCountdown))
-                await ServerStopAsync(true);
+                await Task.WhenAll(GetTaskList(ButtonType.ServerDown, true));
         }
 
         async void ServerUp_Click(object? sender, EventArgs e)
         {
             if (SG_Common.ClickCheck(m_txtLog, "서버시작", m_userData.IsConnect, m_userData.IsCountdown))
-                await ServerStartAsync();
+                await Task.WhenAll(GetTaskList(ButtonType.ServerUp));
         }
 
         async void Monitoring_Click(object? sender, EventArgs e)
         {         
             if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_userData.IsConnect, m_userData.IsCountdown))
-                await MonitoringAsync();            
+                await Task.WhenAll(GetTaskList(ButtonType.Monitoring));
         }
+
         async void RollingPatch_Click(object? sender, EventArgs e)
         {         
-            if (SG_Common.ClickCheck(m_txtLog, "서버 모니터링", m_userData.IsConnect, m_userData.IsCountdown))
-                await RollingPatchAsync();            
-        }
-        
-//===========================================================================================
-        
-        async Task ServerStopAsync(bool bLogDown)
-        {
-            SG_Common.CountDownStart(m_txtLog, m_userData, 600);
-            await Task.WhenAll(GetTaskList(1, bLogDown));
-            LogMessage($"서버다운 {bLogDown} Finish", 1);
-        }
-
-        async Task ServerStartAsync()
-        {
-            await Task.WhenAll(GetTaskList(2));
-            LogMessage($"서버시작 Finish", 1);
-        }
-
-        async Task MonitoringAsync()
-        {
-            await Task.WhenAll(GetTaskList(3));
-            LogMessage($"서버 모니터링 Finish", 1);
-        }
-
-        async Task RollingPatchAsync()
-        {
-            await Task.WhenAll(GetTaskList(4));
-            LogMessage($"서버 롤링패치 Finish", 1);
+            if (SG_Common.ClickCheck(m_txtLog, "롤링패치", m_userData.IsConnect, m_userData.IsCountdown))
+                await Task.WhenAll(GetTaskList(ButtonType.RollingPatch));
         }
         
 //===========================================================================================
@@ -336,16 +321,45 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         // 개별 서버에 대한 작업을 처리하는 비동기 메서드
         async Task ExecuteServerStopAsync(string tag, string ip, bool bLogDown)
         {
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "star_down", string.Empty, EnCommandType.Scripts), tag, "star_down");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "gmtool_down", string.Empty, EnCommandType.Scripts), tag, "gmtool_down");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "battle_down", string.Empty, EnCommandType.Scripts), tag, "battle_down");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "chan_down", string.Empty, EnCommandType.Scripts), tag, "chan_down");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "opt_down", string.Empty, EnCommandType.Scripts), tag, "opt_down");
+            var selectedServer = m_checkTextServerPanel.Controls.OfType<FlowLayoutPanel>()
+                .SelectMany(panel => panel.Controls.OfType<CheckBox>())
+                .Where(cb => cb.Checked)
+                .Select(cb => cb.Text)
+                .ToList();
+
+            if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+            {
+                // star, gmtool, opt, match
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "star_down", string.Empty, EnCommandType.Scripts), tag, "star_down");
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "gmtool_down", string.Empty, EnCommandType.Scripts), tag, "gmtool_down");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Battle.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "battle_down", string.Empty, EnCommandType.Scripts), tag, "battle_down");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Chan.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "chan_down", string.Empty, EnCommandType.Scripts), tag, "chan_down");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "opt_down", string.Empty, EnCommandType.Scripts), tag, "opt_down");
+            }
 
             if (tag.Contains("l-g-ep-adm"))
             {
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "arena_down", string.Empty, EnCommandType.Scripts), tag, "arena_down");
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "match_down", string.Empty, EnCommandType.Scripts), tag, "match_down");
+                if (selectedServer.Contains(EP7_CommandType.Battle.ToString()))
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "arena_down", string.Empty, EnCommandType.Scripts), tag, "arena_down");
+                }
+
+                if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "match_down", string.Empty, EnCommandType.Scripts), tag, "match_down");
+                }
             }
 
             while (m_userData.IsCountdown) // CommonPatch.IsCountdown이 false가 될 때까지 대기
@@ -353,29 +367,68 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 await Task.Delay(1000); // 100ms 간격으로 상태 확인
             }
 
-            if (bLogDown)
+            if (selectedServer.Contains(EP7_CommandType.Log.ToString()))
             {
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_down", string.Empty, EnCommandType.Scripts), tag, "json_tsv_down");
-            }
-            else
-            {
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_restart", string.Empty, EnCommandType.Scripts), tag, "json_tsv_restart");
+                if (bLogDown)
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_down", string.Empty, EnCommandType.Scripts), tag, "json_tsv_down");
+                }
+                else
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_restart", string.Empty, EnCommandType.Scripts), tag, "json_tsv_restart");
+                }
             }
         }
         
         async Task ExecuteServerStartAsync(string tag, string ip)
         {
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "gmtool_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "gmtool_start");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_restart", GetParameter(EP7_CommandType.Log), EnCommandType.Scripts), tag, "json_tsv_restart");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "star_start", string.Empty, EnCommandType.Scripts), tag, "star_start");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "battle_start", GetParameter(EP7_CommandType.Battle), EnCommandType.Scripts), tag, "battle_start");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "chan_start", GetParameter(EP7_CommandType.Chan), EnCommandType.Scripts), tag, "chan_start");
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "opt_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "opt_start");
+            var selectedServer = m_checkTextServerPanel.Controls.OfType<FlowLayoutPanel>()
+                .SelectMany(panel => panel.Controls.OfType<CheckBox>())
+                .Where(cb => cb.Checked)
+                .Select(cb => cb.Text)
+                .ToList();
+
+            if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "gmtool_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "gmtool_start");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Log.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "json_tsv_restart", GetParameter(EP7_CommandType.Log), EnCommandType.Scripts), tag, "json_tsv_restart");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "star_start", string.Empty, EnCommandType.Scripts), tag, "star_start");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Battle.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "battle_start", GetParameter(EP7_CommandType.Battle), EnCommandType.Scripts), tag, "battle_start");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Chan.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "chan_start", GetParameter(EP7_CommandType.Chan), EnCommandType.Scripts), tag, "chan_start");
+            }
+
+            if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+            {
+                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "opt_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "opt_start");
+            }
 
             if (tag.Contains("l-g-ep-adm"))
             {
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "arena_start", GetParameter(EP7_CommandType.Battle), EnCommandType.Scripts), tag, "arena_start");
-                await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "match_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "match_start");
+                if (selectedServer.Contains(EP7_CommandType.Battle.ToString()))
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "arena_start", GetParameter(EP7_CommandType.Battle), EnCommandType.Scripts), tag, "arena_start");
+                }
+
+                if (selectedServer.Contains(EP7_CommandType.Game.ToString()))
+                {
+                    await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "match_start", GetParameter(EP7_CommandType.Game), EnCommandType.Scripts), tag, "match_start");
+                }
             }
 
             LogMessage($"서버 모니터링 {tag} Start", 1);
@@ -426,33 +479,33 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             }   
         }
         
-        List<Task> GetTaskList (int nType, bool bLogDown = false) //1 정지, 리셋 2 시작, 3 모니터링
+        List<Task> GetTaskList (ButtonType buttonType, bool bLogDown = false) //1 정지, 리셋 2 시작, 3 모니터링
         {
-            var selectedTags = m_checkBoxPanel.Controls.OfType<FlowLayoutPanel>()
+            var selectedTags = m_checkRegionPanel.Controls.OfType<FlowLayoutPanel>()
                     .SelectMany(panel => panel.Controls.OfType<CheckBox>())
                     .Where(cb => cb.Checked)
                     .Select(cb => cb.Text)
                     .ToList();
 
-            switch (nType)
+            switch (buttonType)
             {
-                case 1:
+                case ButtonType.ServerDown:
                     return m_dicTagIp
                         .Where(tagIp => selectedTags.Contains(GetRegion(tagIp.Key)))
                         .Select(tagIp => Task.Run(() => ExecuteServerStopAsync(tagIp.Key, tagIp.Value, bLogDown)))                            
                         .ToList(); 
-                case 2:
+                case ButtonType.ServerUp:
                     return m_dicTagIp
                         .Where(tagIp => selectedTags.Contains(GetRegion(tagIp.Key)))
                         .Select(tagIp => Task.Run(() => ExecuteServerStartAsync(tagIp.Key, tagIp.Value)))                            
                         .ToList(); 
-                case 3:
+                case ButtonType.Monitoring:
                 default:
                     return m_dicTagIp
                         .Where(tagIp => selectedTags.Contains(GetRegion(tagIp.Key)))
                         .Select(tagIp => Task.Run(() => ExecuteMonitoringAsync(tagIp.Key, tagIp.Value)))                            
                         .ToList(); 
-                case 4:
+                case ButtonType.RollingPatch:
                     return m_dicTagIp
                         .Where(tagIp => selectedTags.Contains(GetRegion(tagIp.Key)))
                         .Select(tagIp => Task.Run(() => ExecuteRollingPatchAsync(tagIp.Key, tagIp.Value)))                            

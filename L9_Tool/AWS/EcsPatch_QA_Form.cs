@@ -25,19 +25,22 @@ namespace SG_Tool.L9_Tool.AWS
         TableLayoutPanel m_checkBoxPanel = null!;
         CancellationTokenSource m_statusCts = null;
         Dictionary<EcsDataEnum, EcsData> m_dicecsData = new Dictionary<EcsDataEnum, EcsData>();
-        const string c_strConfigFile = $@"L9\L9_Data.cfg";
+        string m_strConfigFile = $@"L9\L9_Data.cfg";
         Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
         Dictionary<EcsDataEnum, TextBox[]> m_dicParameters = new Dictionary<EcsDataEnum, TextBox[]>();
 
-        public EcsPatch_QA_Form()
+        EnLoad9_Type m_enLoad9_Type;
+        public EcsPatch_QA_Form (EnLoad9_Type enLoad9_Type)
         {
+            m_enLoad9_Type = enLoad9_Type;
+            m_strConfigFile = $@"{enLoad9_Type}\L9_Data.cfg";
             InitializeUI();
         }
 
         void InitializeUI()
         {
             SG_Common.Log(m_txtLog, $"✅ InitializeUI");
-            m_bSetting = SG_Common.SetPatchL9Data(c_strConfigFile, m_dicData);
+            m_bSetting = SG_Common.SetPatchL9Data(m_strConfigFile, m_dicData);
             BackColor = Color.WhiteSmoke;
 
             // 상단 버튼 및 파라미터 영역
@@ -47,7 +50,8 @@ namespace SG_Tool.L9_Tool.AWS
                 Dock = DockStyle.Top,
                 Padding = new Padding(5),
                 AutoSize = true,
-                BackColor = Color.AliceBlue
+                //BackColor = Color.AliceBlue,
+                BackColor = m_enLoad9_Type == EnLoad9_Type.L9 ? Color.AliceBlue : Color.PapayaWhip
             };
 
             m_comboBox = new ComboBox
