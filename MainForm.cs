@@ -1,7 +1,6 @@
 ﻿using SG_Tool.Email_Tool;
 using SG_Tool.EP7_Tool;
 using SG_Tool.L9_Tool;
-using SG_Tool.L9_Asia_Tool;
 using SG_Tool.Log;
 using SG_Tool.OP_Tool;
 using System.Drawing.Drawing2D;

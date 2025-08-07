@@ -57,13 +57,13 @@ namespace SG_Tool.L9_Tool.AWS
             m_comboBox = new ComboBox
             {
                 Items = {
+                    "QA0",
                     "QA1",
                     "QA2",
                     "QA3",
                     "Review"
                 },
-                Width = 60,
-                //Height = 30,
+                Width = 80,
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Margin = new Padding(5, 6, 5, 0), // 높이에 따라 조절 (예: 6)
                 Anchor = AnchorStyles.Left
