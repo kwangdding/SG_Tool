@@ -11,21 +11,21 @@ namespace SG_Tool.L9_Tool.AWS
         AmazonECSClient m_ecsClient;
         bool m_bSetting = false;
         bool m_bLoad = false;
+        bool m_bEditingImage = false;
+        bool m_bEditingCount = false;
+        string m_strConfigFile = $@"L9\L9_Data.cfg";
 
-        ComboBox m_comboBox = null!;
         Button m_btnUpdateImage = null!;
         Button m_btnUpdateAll = null!;
         Button m_btnECS_Off = null!;
         Button m_btnECS_On = null!;
 
-        bool m_bEditingImage = false;
-        bool m_bEditingCount = false;
-
+        ComboBox m_comboBox = null!;
         TextBox m_txtLog = null!;
         TableLayoutPanel m_checkBoxPanel = null!;
         CancellationTokenSource m_statusCts = null;
         Dictionary<EcsDataEnum, EcsData> m_dicecsData = new Dictionary<EcsDataEnum, EcsData>();
-        string m_strConfigFile = $@"L9\L9_Data.cfg";
+        
         Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
         Dictionary<EcsDataEnum, TextBox[]> m_dicParameters = new Dictionary<EcsDataEnum, TextBox[]>();
 
@@ -161,7 +161,8 @@ namespace SG_Tool.L9_Tool.AWS
             // 지역은 필요 시 설정
             var config = new AmazonECSConfig
             {
-                RegionEndpoint = selectedServer == "QA2" ? RegionEndpoint.APSoutheast1 : RegionEndpoint.APNortheast1 // 도쿄리전
+                //RegionEndpoint = selectedServer == "QA2" ? RegionEndpoint.APSoutheast1 : RegionEndpoint.APNortheast1 // 도쿄리전
+                RegionEndpoint = m_enLoad9_Type == EnLoad9_Type.L9 ? (selectedServer == "QA2" ? RegionEndpoint.APSoutheast1 : RegionEndpoint.APNortheast1) :RegionEndpoint.APEast1 // 도쿄리전 : 홍콩리전
             };
 
             // AWS 자격 증명 설정

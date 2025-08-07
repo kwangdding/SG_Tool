@@ -24,25 +24,19 @@ namespace SG_Tool
 
     public class EcsData
     {
-        string m_strTag = string.Empty;
-        string m_strTask = string.Empty;
-        string m_strCluster = string.Empty;
-        string m_strService = string.Empty;
-        int m_nServicecount = 1;
+        public string Tag  { get; set; }
+        public string Task  { get; set; }
+        public string Cluster  { get; set; }
+        public string Service  { get; set; }
+        public int ServiceCount  { get; set; }
 
-        public string Tag => m_strTag;
-        public string Task => m_strTask;
-        public string Cluster => m_strCluster;
-        public string Service => m_strService;
-        public int ServiceCount => m_nServicecount;
-
-        public EcsData(string tag, string task, string cluster, string service, int servicecount = -1)
+        public EcsData(string tag, string task, string cluster, string service, int servicecount)
         {
-            m_strTag = tag;
-            m_strTask = task;
-            m_strCluster = cluster;
-            m_strService = service;
-            m_nServicecount = servicecount;
+            Tag = tag;
+            Task = task;
+            Cluster = cluster;
+            Service = service;
+            ServiceCount = servicecount;
         }
     }
 

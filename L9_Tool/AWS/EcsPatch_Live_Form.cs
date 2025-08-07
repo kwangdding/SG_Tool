@@ -128,7 +128,7 @@ namespace SG_Tool.L9_Tool.AWS
             // 지역은 필요 시 설정
             var config = new AmazonECSConfig
             {
-                RegionEndpoint = RegionEndpoint.APNortheast1 // 도쿄리전
+                RegionEndpoint = m_enLoad9_Type == EnLoad9_Type.L9 ? RegionEndpoint.APNortheast1 :RegionEndpoint.APEast1 // 도쿄리전 : 홍콩리전
             };
 
             // AWS 자격 증명 설정

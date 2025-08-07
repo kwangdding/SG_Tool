@@ -147,7 +147,7 @@ namespace SG_Tool.L9_Tool.FTP
                 // 2. 다운 로드 받은 파일을 qa0~3, review, live 환경에 맞춰 이름 변경 및 파일 변경 후 저장.
                 // https://lord-qa-web-op.platform-nx3games.com:1443;
                 // https://lord-kr-op-api.platform-nx3games.com:2443
-                string strOld = m_dicData[L9FTP_DataType.NX3URL];
+                string strOld = GetURL(strlocalFilePath);// m_dicData[L9FTP_DataType.NX3URL];
                 string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com:443";
                 ReplaceJsonUrls(strlocalFilePath, strOld, strNew);
 
@@ -169,7 +169,7 @@ namespace SG_Tool.L9_Tool.FTP
                 {
                     RemoveSpecificKeys(strlocalFilePath); // 서버 시간조정 파라미터 제거.
                 }
-
+                
                 var s3UploadClient = new AmazonS3Client(m_dicData[L9FTP_DataType.AwsAccessKey], m_dicData[L9FTP_DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
                 var transferUploadUtility = new TransferUtility(s3UploadClient);
 
@@ -190,6 +190,42 @@ namespace SG_Tool.L9_Tool.FTP
             catch (Exception ex)
             {
                 SystemLog_Form.LogMessage(m_txtLog, $"❌ [UploadFileToS3 ERROR] {ex.Message}");
+            }
+        }
+
+        string GetURL(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ JSON 파일을 찾을 수 없습니다.");
+                    return m_dicData[L9FTP_DataType.NX3URL];
+                }
+
+                var fileInfo = new FileInfo(filePath);
+                if (fileInfo.IsReadOnly)
+                {
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ 파일이 읽기 전용입니다.");
+                    return m_dicData[L9FTP_DataType.NX3URL];
+                }
+
+                string content = File.ReadAllText(filePath);
+
+                // 정규식으로 제일 처음 "https://도메인:포트" 추출
+                var match = Regex.Match(content, @"https?:\/\/[a-zA-Z0-9\.\-]+(:\d+)?");
+                if (!match.Success)
+                {
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ 기존 URL을 찾을 수 없습니다.");
+                    return m_dicData[L9FTP_DataType.NX3URL];
+                }
+
+                return match.Value;
+            }
+            catch (Exception ex)
+            {
+                SystemLog_Form.LogMessage(m_txtLog, $"❌[GetURL] 예외 발생: {ex.Message}");
+                return m_dicData[L9FTP_DataType.NX3URL];
             }
         }
 
