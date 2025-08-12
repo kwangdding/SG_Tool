@@ -256,7 +256,7 @@ namespace SG_Tool.L9_Tool.AWS
                     if (token.IsCancellationRequested) break;
                     if (m_ecsClient == null) return;
 
-                    SG_Common.Log(m_txtLog, $"[UpdateStatusAsync] Live ECS Start");
+                    //SG_Common.Log(m_txtLog, $"[UpdateStatusAsync] Live ECS Start");
 
                     for (int i = 0; i < ecsDatalist.Count; i++)
                     {
@@ -493,51 +493,5 @@ namespace SG_Tool.L9_Tool.AWS
             }
             m_bEditingCount = false;
         }
-        
-        // async void UpdateECS(bool bOn)
-        // {
-        //     var selectedTags = m_checkBoxPanel.Controls.OfType<TableLayoutPanel>()
-        //         .SelectMany(panel => panel.Controls.OfType<CheckBox>())
-        //         .Where(cb => cb.Checked)
-        //         .Select(cb => cb.Text)
-        //         .ToList();
-
-        //     SG_Common.Log(m_txtLog, $"UpdateECS {selectedTags.Count}개 선택됨");
-
-        //     foreach (var task in m_dicecsData)
-        //     {
-        //         if (!selectedTags.Contains(task.Key.ToString())) continue;
-
-        //         var taskDefs = await m_ecsClient.ListTaskDefinitionsAsync(new ListTaskDefinitionsRequest
-        //         {
-        //             FamilyPrefix = task.Value.Task,
-        //             Sort = Amazon.ECS.SortOrder.DESC
-        //         });
-
-        //         var latestTaskDefArn = taskDefs.TaskDefinitionArns.FirstOrDefault();
-        //         if (latestTaskDefArn == null)
-        //         {
-        //             MessageBox.Show("❌ 최신 태스크 정의를 찾을 수 없습니다.");
-        //             return;
-        //         }
-
-        //         while (task.Value.ServiceCount == -1)
-        //         {
-        //             SG_Common.Log(m_txtLog, $"UpdateECS ECS Count 설정 되지 않아 대기중....");
-        //             await System.Threading.Tasks.Task.Delay(2000); // 2초마다 갱신.
-        //         }
-
-        //         int desiredCount = bOn ? task.Value.ServiceCount : 0;
-        //         await m_ecsClient.UpdateServiceAsync(new UpdateServiceRequest
-        //         {
-        //             Cluster = task.Value.Cluster,
-        //             Service = task.Value.Service,
-        //             TaskDefinition = latestTaskDefArn,
-        //             DesiredCount = desiredCount
-        //         });
-
-        //         SG_Common.Log(m_txtLog, $"✅ UpdateECS {task.Value.Tag} : 태스크로 {latestTaskDefArn}변경, 서비스 {desiredCount}개 설정됨");
-        //     }
-        // }
     }
 }

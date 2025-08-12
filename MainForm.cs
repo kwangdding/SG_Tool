@@ -4,6 +4,7 @@ using SG_Tool.L9_Tool;
 using SG_Tool.Log;
 using SG_Tool.OP_Tool;
 using System.Drawing.Drawing2D;
+using System.Windows.Forms;
 
 namespace SG_Tool
 {
@@ -18,7 +19,7 @@ namespace SG_Tool
 
         void InitializeComponent()
         {
-            this.Text = "SG_Tool - v1.0.4";
+            this.Text = "SG_Tool - v1.0.5";
             this.Width = 1000;
             this.Height = 900;
             this.MinimumSize = new Size(600, 400);
@@ -53,6 +54,26 @@ namespace SG_Tool
             tabControl.TabPages.Add(new TabPage(" 로드나인 아시아") { ImageIndex = 1, Controls = { new L9_Asia_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 아우터플레인") { ImageIndex = 2, Controls = { new OP_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 에픽세븐") { ImageIndex = 3, Controls = { new EP7_Tool_Form { Dock = DockStyle.Fill } } });
+
+
+            // 탭 선택/해제 이벤트 처리
+            tabControl.Selected += (s, e) =>
+            {
+                if (e.TabPage.Controls.Count > 0)
+                {
+                    var tool = e.TabPage.Controls[0] as IActivatableTool;
+                    tool?.ActivateTool();
+                }
+            };
+
+            tabControl.Deselected += (s, e) =>
+            {
+                if (e.TabPage.Controls.Count > 0)
+                {
+                    var tool = e.TabPage.Controls[0] as IActivatableTool;
+                    tool?.DeactivateTool();
+                }
+            };
 
             // 탭 커스텀 그리기
             tabControl.DrawItem += (s, e) =>
@@ -112,6 +133,12 @@ namespace SG_Tool
             return resized;
         }
         // Bitmap → Icon 변환 함수 (앞서 제공한 것과 동일)
-       
+    }
+
+    // 탭에서 활성/비활성 처리를 위한 인터페이스
+    public interface IActivatableTool
+    {
+        void ActivateTool();
+        void DeactivateTool();
     }
 }

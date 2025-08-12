@@ -145,8 +145,6 @@ namespace SG_Tool.L9_Tool.FTP
                 }
 
                 // 2. 다운 로드 받은 파일을 qa0~3, review, live 환경에 맞춰 이름 변경 및 파일 변경 후 저장.
-                // https://lord-qa-web-op.platform-nx3games.com:1443;
-                // https://lord-kr-op-api.platform-nx3games.com:2443
                 string strOld = GetURL(strlocalFilePath);// m_dicData[L9FTP_DataType.NX3URL];
                 string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com:443";
                 ReplaceJsonUrls(strlocalFilePath, strOld, strNew);
@@ -199,14 +197,14 @@ namespace SG_Tool.L9_Tool.FTP
             {
                 if (!File.Exists(filePath))
                 {
-                    SystemLog_Form.LogMessage(m_txtLog, "❌ JSON 파일을 찾을 수 없습니다.");
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] JSON 파일을 찾을 수 없습니다.");
                     return m_dicData[L9FTP_DataType.NX3URL];
                 }
 
                 var fileInfo = new FileInfo(filePath);
                 if (fileInfo.IsReadOnly)
                 {
-                    SystemLog_Form.LogMessage(m_txtLog, "❌ 파일이 읽기 전용입니다.");
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] 파일이 읽기 전용입니다.");
                     return m_dicData[L9FTP_DataType.NX3URL];
                 }
 
@@ -216,7 +214,7 @@ namespace SG_Tool.L9_Tool.FTP
                 var match = Regex.Match(content, @"https?:\/\/[a-zA-Z0-9\.\-]+(:\d+)?");
                 if (!match.Success)
                 {
-                    SystemLog_Form.LogMessage(m_txtLog, "❌ 기존 URL을 찾을 수 없습니다.");
+                    SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] 기존 URL을 찾을 수 없습니다.");
                     return m_dicData[L9FTP_DataType.NX3URL];
                 }
 
@@ -224,7 +222,7 @@ namespace SG_Tool.L9_Tool.FTP
             }
             catch (Exception ex)
             {
-                SystemLog_Form.LogMessage(m_txtLog, $"❌[GetURL] 예외 발생: {ex.Message}");
+                SystemLog_Form.LogMessage(m_txtLog, $"❌ [GetURL] 예외 발생: {ex.Message}");
                 return m_dicData[L9FTP_DataType.NX3URL];
             }
         }
@@ -309,17 +307,6 @@ namespace SG_Tool.L9_Tool.FTP
 
             File.WriteAllLines(filePath, filteredLines);
             SystemLog_Form.LogMessage(m_txtLog, $"🎉[RemoveSpecificKeys] {m_strSelectedServer} 환경 서버 시간 변경 관련 키 삭제 완료");
-        }
-
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // JsonUpdate
-            // 
-            this.Name = "JsonUpdate";
-            this.ResumeLayout(false);
-
         }
     }
 }

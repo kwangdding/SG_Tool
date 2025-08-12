@@ -180,7 +180,8 @@ namespace SG_Tool.OP_Tool.CDN
 
                     if (process.ExitCode == 0)
                     {
-                        MessageBox.Show("Akamai Purge 성공!", "성공", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        //MessageBox.Show("Akamai Purge 성공!", "성공", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        LogMessage($"========== Akamai Purge 성공 ==========");
                     }
                     else
                     {
