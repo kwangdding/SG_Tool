@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using SG_Tool.Log;
+﻿using SG_Tool.Log;
+using System.Diagnostics;
 
 namespace SG_Tool.EP7_Tool.CDN
 {
@@ -29,16 +29,13 @@ namespace SG_Tool.EP7_Tool.CDN
                 AutoSize = true,
                 Width = 100,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleCenter
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             };
 
             m_comboBox = new ComboBox
             {
                 Items = {
-                    "QA0",
-                    "QA1",
-                    "QA2",
-                    "Review",
+                    "QA",
                     "Live"
                 },
                 Width = 300,
@@ -53,7 +50,7 @@ namespace SG_Tool.EP7_Tool.CDN
                 Width = 100,
                 Height = 50,
                 BackColor = Color.LightYellow,
-                TextAlign = ContentAlignment.MiddleCenter,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
             m_btRunButton.Click += new EventHandler(RunAkamaiPurge);
@@ -215,26 +212,19 @@ namespace SG_Tool.EP7_Tool.CDN
 
         string GetCommnad(int nType, string selectedValue)
         {
-            switch (nType)
-            {
-                default:
-                case 0:
-                    return GetCommand_Platform($"/{selectedValue}/Android/manifest.dat");
-                case 1:
-                    return GetCommand_Platform($"/{selectedValue}/iOS/manifest.dat");
-            }
+            return GetCommand_Platform(selectedValue);
         }
+
         string GetCommand_Platform(string selectedValue)
         {
+            string edgercPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EP7", "mgs.edgerc");
             if (selectedValue.Contains("Live"))
             {
-                string edgercLivePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OP", "outerplane_live.edgerc");
-                return $"akamai purge --edgerc \"{edgercLivePath}\" --section default delete https://outerplane-down.game.playstove.com{selectedValue}";
+                return $"akamai purge --edgerc \"{edgercPath}\" --section default delete --cpcode 1110090";
             }
             else
             {
-                string edgercQAPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OP", "outerplane_qa.edgerc");
-                return $"akamai purge --edgerc \"{edgercQAPath}\" --section default delete https://outerplane-qa-down.game.playstove.com{selectedValue}";
+                return $"akamai purge --edgerc \"{edgercPath}\" --section default delete --cpcode 1110790";
             }
         }
 
