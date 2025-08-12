@@ -13,13 +13,13 @@
     <Compile Update="Email_Tool\Target\Outer.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Ep7_Tool\CDN\EP7_CDN_Purge.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Ep7_Tool\EP7_Tool_Form.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Ep7_Tool\ServerPatch\Ep7_Patch_Live_Form..cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="L9_Asia_Tool\L9_Asia_Tool_Form.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="L9_Tool\AWS\EcsPatch_Live_Form.cs">
