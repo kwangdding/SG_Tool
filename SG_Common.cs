@@ -10,7 +10,6 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SG_Tool
 {
-    public enum EnUpdateType { LoginIni, DataCfg }
     public enum EnProjectType { EP7, L9, Email, OP }
     public enum EnCommandType { Command, UserCheck, Monitoring, Scripts }
     public enum EP7_CommandType { Verinfo, Game, Battle, Log, Chan }
@@ -19,7 +18,6 @@ namespace SG_Tool
     public enum L9DataType { AwsS3, S3FileBucket, S3Bucket, AwsAccessKey, AwsSecretKey, JsonPath }
     public enum L9FTP_DataType { S3FileBucket, S3UploadBucket, AwsAccessKey, AwsSecretKey, JsonUpdate, DBUpload, NX3URL }
     public enum Email_DataType { Name, MailMain }
-    public enum CF_DataType { URL, ID, PW, Akamai, Akamai_ID, Akamai_Key, LocalPath, TargetPath, Version, PatchLocalPath, PatchPath, Login_ServerInfo, WinPath, Patcher, Purge, RemotePath, SVNPath, VersionPath }
     public enum EnLoad9_Type { L9, L9_Asia }
 
     public class EcsData
@@ -339,7 +337,6 @@ namespace SG_Tool
             }
         }
 
-        
         public static async Task AwaitWithPeriodicLog(TextBox txtLog, Task task, string tag, string operation, int intervalMilliseconds = 20000)
         {
             using (var cts = new CancellationTokenSource())

@@ -146,7 +146,7 @@ namespace SG_Tool.L9_Tool.FTP
 
                 // 2. 다운 로드 받은 파일을 qa0~3, review, live 환경에 맞춰 이름 변경 및 파일 변경 후 저장.
                 string strOld = GetURL(strlocalFilePath);// m_dicData[L9FTP_DataType.NX3URL];
-                string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com:443";
+                string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com";
                 ReplaceJsonUrls(strlocalFilePath, strOld, strNew);
 
                 // 3. 서버 시간조정 파라미터 도메인 변경.

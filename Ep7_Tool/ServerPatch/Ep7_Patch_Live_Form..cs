@@ -333,6 +333,9 @@ namespace SG_Tool.EP7_Tool.ServerPatch
                 await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "star_down", string.Empty, EnCommandType.Scripts), tag, "star_down");
                 await SG_Common.AwaitWithPeriodicLog(m_txtLog, GetTask(tag, ip, "gmtool_down", string.Empty, EnCommandType.Scripts), tag, "gmtool_down");
             }
+            
+            // star 서버 종료 후 10분 대기 카운트 다운 시작.
+            SG_Common.CountDownStart(m_txtLog, m_userData, 600);
 
             if (selectedServer.Contains(EP7_CommandType.Battle.ToString()))
             {
