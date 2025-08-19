@@ -33,7 +33,7 @@ namespace SG_Tool.L9_Tool.AWS
         public EcsPatch_QA_Form (EnLoad9_Type enLoad9_Type)
         {
             m_enLoad9_Type = enLoad9_Type;
-            m_strConfigFile = $@"{enLoad9_Type}\L9_Data.cfg";
+            m_strConfigFile = $@"{m_enLoad9_Type}\L9_Data.cfg";
             InitializeUI();
         }
 
@@ -139,7 +139,7 @@ namespace SG_Tool.L9_Tool.AWS
         void ServerChangeList(object sender, EventArgs e)
         {
             string selectedServer = m_comboBox.SelectedItem?.ToString() ?? string.Empty;
-            string strServerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "L9", $"L9_{selectedServer}.cfg");
+            string strServerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, m_enLoad9_Type.ToString(), $"L9_{selectedServer}.cfg");
             LoadServerList(selectedServer, strServerPath);
         }
 
