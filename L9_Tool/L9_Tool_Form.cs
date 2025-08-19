@@ -206,7 +206,7 @@ namespace SG_Tool.L9_Tool
         void InitializeComponent()
         {
             // 각 탭에 대응되는 사용자 컨트롤 추가
-            m_tabDBUpload.Controls.Add(new DBUpload(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+            m_tabDBUpload.Controls.Add(new DBUpload(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
             m_tabInitialized[0] = true;
             m_tabControl.SelectedIndex = 0;
 
@@ -250,16 +250,16 @@ namespace SG_Tool.L9_Tool
                 switch (index)
                 {
                     case 0:
-                        m_tabDBUpload.Controls.Add(new DBUpload(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+                        m_tabDBUpload.Controls.Add(new DBUpload(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
                         break;
                     case 1:
-                        m_tabJsonUpdate.Controls.Add(new JsonUpdate(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+                        m_tabJsonUpdate.Controls.Add(new JsonUpdate(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
                         break;
                     case 2:
-                        m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+                        m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
                         break;
                     case 3:
-                        m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form(EnLoad9_Type.L9) { Dock = DockStyle.Fill });
+                        m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
                         break;
                 }
 
