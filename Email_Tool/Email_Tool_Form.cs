@@ -7,6 +7,7 @@ namespace SG_Tool.Email_Tool
         TabControl m_tabControl = null!;
         TabPage m_tabEpic = null!;
         TabPage m_tabLoad = null!;
+        TabPage m_tabLoadAsia = null!;
         TabPage m_tabOuter = null!;
 
         int m_lastSelectedIndex = 0;
@@ -27,10 +28,12 @@ namespace SG_Tool.Email_Tool
 
             m_tabEpic = new TabPage("Epic");
             m_tabLoad = new TabPage("Load");
+            m_tabLoadAsia = new TabPage("LoadAsia");
             m_tabOuter = new TabPage("Outer");
 
             m_tabControl.TabPages.Add(m_tabEpic);
             m_tabControl.TabPages.Add(m_tabLoad);
+            m_tabControl.TabPages.Add(m_tabLoadAsia);
             m_tabControl.TabPages.Add(m_tabOuter);
         }
 
@@ -52,11 +55,15 @@ namespace SG_Tool.Email_Tool
             foreach (Control ctrl in m_tabLoad.Controls)
                 ctrl.Dispose();
 
+            foreach (Control ctrl in m_tabLoadAsia.Controls)
+                ctrl.Dispose();
+
             foreach (Control ctrl in m_tabOuter.Controls)
                 ctrl.Dispose();
 
             m_tabEpic.Controls.Clear();
             m_tabLoad.Controls.Clear();
+            m_tabLoadAsia.Controls.Clear();
             m_tabOuter.Controls.Clear();
             m_tabInitialized[m_lastSelectedIndex] = false;
             Controls.Clear();
@@ -105,7 +112,7 @@ namespace SG_Tool.Email_Tool
         void M_tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = m_tabControl.SelectedIndex;
-            //MessageBox.Show($"M_tabControl_SelectedIndexChanged {index} 탭을 활성화 하겠습니까?", "탭 활성화", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            // MessageBox.Show($"M_tabControl_SelectedIndexChanged {index} 탭을 활성화 하겠습니까?", "탭 활성화", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (!m_tabInitialized[index])
             {
                 // 최초 진입 시 컨트롤 생성
@@ -118,6 +125,9 @@ namespace SG_Tool.Email_Tool
                         m_tabLoad.Controls.Add(new Load_Form { Dock = DockStyle.Fill });
                         break;
                     case 2:
+                        m_tabLoadAsia.Controls.Add(new LoadAsia_Form { Dock = DockStyle.Fill });
+                        break;
+                    case 3:
                         m_tabOuter.Controls.Add(new Outer_Form { Dock = DockStyle.Fill });
                         break;
                 }
@@ -126,6 +136,37 @@ namespace SG_Tool.Email_Tool
             }
 
             m_lastSelectedIndex = index;
+        }
+
+        public class SQLData
+        {
+            string strAccount = string.Empty;
+            string strShard = string.Empty;
+            string strWorld = string.Empty;
+
+            public string Account => strAccount;
+            public string Shard => strShard;
+            public string World => strWorld;
+
+            public SQLData()
+            {
+            }
+
+            public void SetSQLData(string strText)
+            {
+                // 여러 줄 입력이라면 줄 단위로 분리하여 처리
+                var lines = strText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var line in lines)
+                {
+                    if (line.Contains("DBAccount"))
+                        strAccount += $"\t\t    {line}\r\n";
+                    else if (line.Contains("DBShard"))
+                        strShard += $"\t\t    {line}\r\n";
+                    else if (line.Contains("DBWorld"))
+                        strWorld += $"\t\t    {line}\r\n";
+                }
+            }
         }
     }
 }

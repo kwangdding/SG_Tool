@@ -1,6 +1,6 @@
 ﻿namespace SG_Tool.Email_Tool.Target
 {
-    public class Load_Form : UserControl
+    public class LoadAsia_Form : UserControl
     {
         FlowLayoutPanel m_txtName = SG_Common.CreateLabeledPanel("이름", 60, "안광열", false, 20);
         Label m_lblServerSelect = null!;
@@ -8,7 +8,7 @@
         FlowLayoutPanel m_flowPanel = null!;
         Button m_btnUp = null!;
         TextBox m_txtLog = null!;
-        const string c_strLoad = @"Email\Email_L9.cfg";
+        const string c_strLoad = @"Email\Email_L9Asia.cfg";
         Dictionary<Email_DataType, string> m_dicData = new Dictionary<Email_DataType, string>();
         FlowLayoutPanel[] m_aParamter = new FlowLayoutPanel[]
         {
@@ -20,7 +20,7 @@
         Button m_btnAddSqlPath = null!;
         Button m_btnAddBeforeSQL = null!;
         Button m_btnAddAfterSQL = null!;
-        public Load_Form()
+        public LoadAsia_Form()
         {
             InitializeUI();
         }
@@ -59,7 +59,7 @@
                 Anchor = AnchorStyles.Left,
                 Margin = new Padding(5)
             };
-            m_cmbServerList.Items.AddRange(new string[] { "QA1", "QA2", "QA3", "Review" });
+            m_cmbServerList.Items.AddRange(new string[] { "QA0", "QA1", "QA2", "qa3", "REVIEW" });
             m_cmbServerList.SelectedIndexChanged += ServerChangeList;
 
             serverRowPanel.Controls.Add(m_lblServerSelect, 0, 0);
@@ -82,19 +82,19 @@
             m_btnAddBeforeSQL = new Button { Text = "Before", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddBeforeSQL.Click += (s, e) =>
             {
-                AddSqlPathPanel("Before SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\06\20250626_v2\update\mssql\before\DBAccount_tGameNotice_PK_tGameNotice_REBUILD.sql");
+                AddSqlPathPanel("Before SQL", @"\5.DBScript\NX3\2025\08\202500903_v2\update\mssql\before\DBAccount_tGameNotice_PK_tGameNotice_REBUILD.sql");
             };
 
             m_btnAddSqlPath = new Button { Text = "Patch", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddSqlPath.Click += (s, e) =>
             {
-                AddSqlPathPanel("Patch SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\DBAccount_LIVE_UPDATE.sql");
+                AddSqlPathPanel("Patch SQL", @"\5.DBScript\NX3\2025\08\202500903_v2\update\mssql\DBShard_A_LIVE_UPDATE.sql");
             };
 
             m_btnAddAfterSQL = new Button { Text = "After", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddAfterSQL.Click += (s, e) =>
             {
-                AddSqlPathPanel("After SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\after\DBAccount_tAccountNotify테이블초기화.sql");
+                AddSqlPathPanel("After SQL", @"\5.DBScript\NX3\2025\08\202500903_v2\update\mssql\after\DBAccount_tAccountNotify테이블초기화.sql");
             };
 
             m_txtName = SG_Common.CreateLabeledPanel("이름", 60, m_dicData[Email_DataType.Name], false, 20);
@@ -192,10 +192,6 @@
             Email_Tool_Form.SQLData AfterSQL = new Email_Tool_Form.SQLData();
 
 
-            //foreach (var panel in m_aParamter)
-            //{
-            //    strList += $"\t    - {panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text}\r\n";
-            //}
             foreach (var panel in m_aParamter)
             {
                 var lines = panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -254,7 +250,7 @@
             SG_Common.Log(m_txtLog, $"======================= {selectedServer} Start =======================", 1);
             SG_Common.Log(m_txtLog, strMain, 1);
             SG_Common.Log(m_txtLog, $"======================= {selectedServer} End =======================", 1);
-            string subject = $"RE: [로드나인] {selectedServer}환경 DB 작업 요청";
+            string subject = $"RE: [로드나인_아시아]{selectedServer} 환경 작업 요청 드립니다.";
             SG_Common.ReplyToLatestMail(m_txtLog, subject, strMain);
 
             // 저장.
@@ -287,16 +283,16 @@
                     strTarget = "\t    - QA0(AccountDB, ShardDB, WorldDB)\r\n\t    - DB IP : 10.168.194.190\r\n";
                     break;
                 case "QA1":
-                    strTarget = "\t    - QA1(AccountDB, ShardDB_000, ShardDB_001, WorldDB)\r\n\t    - DB IP : q1-lord-gdb-1.cec6xtivbeci.ap-northeast-1.rds.amazonaws.com\r\n";
+                    strTarget = "\t    - QA1(AccountDB, ShardDB_000, WorldDB_1,2,3,4)\r\n\t    - DB IP : 10.168.196.187\r\n";
                     break;
                 case "QA2":
-                    strTarget = "\t    - QA2(AccountDB, ShardDB, WorldDB)\r\n\t    - DB IP : 10.168.192.167\r\n";
+                    strTarget = "\t    - QA2 (AccountDB, ShardDB, WorldDB1,2)\r\n\t    - DB IP : 10.168.196.241\r\n";
                     break;
                 case "QA3":
-                    strTarget = "\t    - QA3(AccountDB, ShardDB, WorldDB)\r\n\t    - DB IP : 10.162.4.138\r\n";
+                    strTarget = "\t    - QA3 (AccountDB, ShardDB 1,2, WorldDB 1,2)\r\n\t    - DB IP : lord-asia-q3-gdb-db-01.c9ywe8s2a44v.ap-east-1.rds.amazonaws.com\r\n";
                     break;
                 case "Review":
-                    strTarget = "\t    - Review(AccountDB, ShardDB, WorldDB_Rev, WorldDB_Rev2)\r\n\t    - DB IP : q1-lord-gdb-1.cec6xtivbeci.ap-northeast-1.rds.amazonaws.com\r\n";
+                    strTarget = "\t    - REVIEW(AccountDB, ShardDB, WorldDB)\r\n\t    - DB IP : lord-asia-q3-gdb-db-01.c9ywe8s2a44v.ap-east-1.rds.amazonaws.com\r\n";
                     break;
                 case "Live":
                     break;
