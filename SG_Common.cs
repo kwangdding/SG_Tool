@@ -5,7 +5,9 @@ using Amazon.S3.Transfer;
 using Renci.SshNet;
 using SG_Tool.Log;
 using System.Net.NetworkInformation;
+#if NET48
 using Outlook = Microsoft.Office.Interop.Outlook;
+#endif
 using Task = System.Threading.Tasks.Task;
 
 namespace SG_Tool
@@ -15,8 +17,7 @@ namespace SG_Tool
     public enum EP7_CommandType { Verinfo, Game, Battle, Log, Chan }
     public enum EP7_EnRegion { Asia, Europ, Global, Japan, Korea }
     public enum EcsDataEnum { front, auth, noti, op_api, op_front, log }
-    public enum L9DataType { AwsS3, S3FileBucket, S3Bucket, AwsAccessKey, AwsSecretKey, JsonPath }
-    public enum L9FTP_DataType { S3FileBucket, S3UploadBucket, AwsAccessKey, AwsSecretKey, JsonUpdate, DBUpload, NX3URL }
+    public enum L9DataType { S3FileBucket, S3UploadBucket, AwsAccessKey, AwsSecretKey, NX3AwsAccessKey, NX3AwsSecretKey, JsonUpdate, DBUpload, NX3URL }
     public enum Email_DataType { Name, MailMain }
     public enum EnLoad9_Type { L9, L9_Asia }
 
@@ -603,7 +604,7 @@ namespace SG_Tool
             }           
         }
 
-        public static bool SetPatchData(string strConfigFile, Dictionary<L9FTP_DataType, string> dicData)
+        public static bool SetPatchData(string strConfigFile, Dictionary<L9DataType, string> dicData)
         {
             if (File.Exists(strConfigFile))
             {
@@ -620,7 +621,7 @@ namespace SG_Tool
                         continue;
 
                     // Enum.TryParse를 이용한 안전한 파싱
-                    if (Enum.TryParse(parts[0], out L9FTP_DataType key))
+                    if (Enum.TryParse(parts[0], out L9DataType key))
                     {
                         if (dicData.ContainsKey(key))
                         {
@@ -668,7 +669,7 @@ namespace SG_Tool
         }
 
         // dicData 저장 된 값은 cfg 에 다시 저장. >  데이터 업데이트 처리.
-        public static void SaveData(TextBox txtLog, string strConfigFile, Dictionary<L9FTP_DataType, string> dicData)
+        public static void SaveData(TextBox txtLog, string strConfigFile, Dictionary<L9DataType, string> dicData)
         {
             if (File.Exists(strConfigFile))
             {
@@ -683,9 +684,9 @@ namespace SG_Tool
                     if (parts.Length < 2)
                         continue;
 
-                    if (Enum.TryParse(parts[0], out L9FTP_DataType key))
+                    if (Enum.TryParse(parts[0], out L9DataType key))
                     {
-                        if (key == L9FTP_DataType.S3FileBucket || key == L9FTP_DataType.S3UploadBucket)
+                        if (key == L9DataType.S3FileBucket || key == L9DataType.S3UploadBucket)
                         {
                             Log(txtLog, $"[SaveData][INFO] {parts[0]} 업데이트 : {parts[1]} → {dicData[key]}");
                             lines[i] = $"{parts[0]} {dicData[key]}";
@@ -774,9 +775,11 @@ namespace SG_Tool
             }
         }
 
+
         public static void ReplyToLatestMail(TextBox txtLog, string subjectKeyword, string bodyToInsert)
         {
             Log(txtLog, $"[ReplyToLatestMail] Outlook 연결 시도...");
+            #if NET48
             try
             {
                 Outlook.Application outlookApp = new Outlook.Application();
@@ -838,8 +841,10 @@ namespace SG_Tool
             }
 
             Log(txtLog, $"[ReplyToLatestMail] Outlook 관련 작업 완료.");
+            #endif
         }
 
+#if NET48
         static List<Outlook.MAPIFolder> GetAllFolders(Outlook.NameSpace ns)
         {
             List<Outlook.MAPIFolder> result = new List<Outlook.MAPIFolder>();
@@ -861,6 +866,8 @@ namespace SG_Tool
             }
             return folders;
         }
+#endif
+        
         #endregion Email_Tool
 
         public static void Log(TextBox txtLog, string message, int nType = 0, bool overwrite = false, bool bBox = false)

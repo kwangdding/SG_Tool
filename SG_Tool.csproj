@@ -1,17 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<ApplicationIcon>icon.ico</ApplicationIcon>
-    <TargetFramework>net48</TargetFramework>
-	<UseWindowsForms>true</UseWindowsForms>
-	<LangVersion>latest</LangVersion>
+	  <ApplicationIcon>icon.ico</ApplicationIcon>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <!-- <TargetFrameworks>net48</TargetFrameworks>   -->
+	  <UseWindowsForms>true</UseWindowsForms>
+	  <LangVersion>latest</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-	<ImplicitUsings>enable</ImplicitUsings>
-	<!--<ApplicationManifest>SG_Tool.manifest</ApplicationManifest>-->
+	  <ImplicitUsings>enable</ImplicitUsings>	
+  </PropertyGroup>
+  
+  <!-- net48 전용 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <DefineConstants>NET48</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- net9.0 전용 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-windows'">
+    <DefineConstants>NET9_0</DefineConstants>
+  </PropertyGroup>
+
+   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <COMReference Include="Microsoft.Office.Interop.Outlook">
       <Guid>{00062FFF-0000-0000-C000-000000000046}</Guid>
       <VersionMajor>9</VersionMajor>

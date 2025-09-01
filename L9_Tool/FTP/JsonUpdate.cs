@@ -16,11 +16,13 @@ namespace SG_Tool.L9_Tool.FTP
         TextBox m_txtLog = null!;
 
         string m_strConfigFile = $@"L9\l9_Data.cfg";
-        Dictionary<L9FTP_DataType, string> m_dicData = new Dictionary<L9FTP_DataType, string>();
+        EnLoad9_Type m_enLoad9_Type = EnLoad9_Type.L9;
+        Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
 
         public JsonUpdate(EnLoad9_Type enLoad9_Type)
         {
-            m_strConfigFile = $@"{enLoad9_Type}\L9_Data.cfg";
+            m_enLoad9_Type = enLoad9_Type;
+            m_strConfigFile = $@"{m_enLoad9_Type}\L9_Data.cfg";
             InitializeUI();
         }
 
@@ -61,7 +63,7 @@ namespace SG_Tool.L9_Tool.FTP
             };
             m_comboBox.SelectedIndexChanged += ServerChangeList;
 
-            m_txtParameter = SG_Common.CreateLabeledTextBox("Version:", 180, m_dicData.ContainsKey(L9FTP_DataType.JsonUpdate) ? m_dicData[L9FTP_DataType.JsonUpdate] : "없음");
+            m_txtParameter = SG_Common.CreateLabeledTextBox("Version:", 180, m_dicData.ContainsKey(L9DataType.JsonUpdate) ? m_dicData[L9DataType.JsonUpdate] : "없음");
             m_btnJsonUpdate = new Button
             {
                 Text = "패치파일 복사",
@@ -131,12 +133,12 @@ namespace SG_Tool.L9_Tool.FTP
                 SystemLog_Form.LogMessage(m_txtLog, $"[UploadFileToS3()] 다운로드 시작..");
 
                 // 1. FTP로 파일을 다운로드 받는다. // project-lord/Web/PatchConfig/{strDate}/Operation.ProjectL.Protocol.json
-                var s3Client = new AmazonS3Client(m_dicData[L9FTP_DataType.AwsAccessKey], m_dicData[L9FTP_DataType.AwsSecretKey], RegionEndpoint.APNortheast2);
-                var transferUtility = new TransferUtility(s3Client);
+                var s3Client_NX = new AmazonS3Client(m_dicData[L9DataType.NX3AwsAccessKey], m_dicData[L9DataType.NX3AwsSecretKey], RegionEndpoint.APNortheast2);
+                var transferUtility = new TransferUtility(s3Client_NX);
                 string strKey = @$"Web/PatchConfig/{m_txtParameter.Text.Trim()}/Operation.ProjectL.Protocol.json";
                 string strlocalFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lordnine-config", $"{m_txtParameter.Text.Trim()}", "Operation.ProjectL.Protocol.json");
 
-                await SG_Common.DownloadAsyncToS3(m_txtLog, transferUtility, strlocalFilePath, m_dicData[L9FTP_DataType.S3FileBucket], strKey);
+                await SG_Common.DownloadAsyncToS3(m_txtLog, transferUtility, strlocalFilePath, m_dicData[L9DataType.S3FileBucket], strKey);
 
                 if (m_strSelectedServer == string.Empty)
                 {
@@ -168,15 +170,15 @@ namespace SG_Tool.L9_Tool.FTP
                     RemoveSpecificKeys(strlocalFilePath); // 서버 시간조정 파라미터 제거.
                 }
                 
-                var s3UploadClient = new AmazonS3Client(m_dicData[L9FTP_DataType.AwsAccessKey], m_dicData[L9FTP_DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
+                var s3UploadClient = new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
                 var transferUploadUtility = new TransferUtility(s3UploadClient);
 
                 // 4. 파일 s3 환경에 업로드
                 strKey = @$"{m_strSelectedServer}/Operation.ProjectL.Protocol.json";
                 SystemLog_Form.LogMessage(m_txtLog, $"[UploadFileToS3()] {strKey} 업로드 시작..");
-                await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9FTP_DataType.S3UploadBucket], strKey);
+                await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9DataType.S3UploadBucket], strKey);
 
-                m_dicData[L9FTP_DataType.JsonUpdate] = m_txtParameter.Text.Trim();
+                m_dicData[L9DataType.JsonUpdate] = m_txtParameter.Text.Trim();
                 SG_Common.SaveData(m_txtLog, m_strConfigFile, m_dicData);
                 SystemLog_Form.LogMessage(m_txtLog, $"✅ [UploadFileToS3] 업로드 완료");
 
@@ -198,14 +200,14 @@ namespace SG_Tool.L9_Tool.FTP
                 if (!File.Exists(filePath))
                 {
                     SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] JSON 파일을 찾을 수 없습니다.");
-                    return m_dicData[L9FTP_DataType.NX3URL];
+                    return m_dicData[L9DataType.NX3URL];
                 }
 
                 var fileInfo = new FileInfo(filePath);
                 if (fileInfo.IsReadOnly)
                 {
                     SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] 파일이 읽기 전용입니다.");
-                    return m_dicData[L9FTP_DataType.NX3URL];
+                    return m_dicData[L9DataType.NX3URL];
                 }
 
                 string content = File.ReadAllText(filePath);
@@ -215,7 +217,7 @@ namespace SG_Tool.L9_Tool.FTP
                 if (!match.Success)
                 {
                     SystemLog_Form.LogMessage(m_txtLog, "❌ [GetURL] 기존 URL을 찾을 수 없습니다.");
-                    return m_dicData[L9FTP_DataType.NX3URL];
+                    return m_dicData[L9DataType.NX3URL];
                 }
 
                 return match.Value;
@@ -223,7 +225,7 @@ namespace SG_Tool.L9_Tool.FTP
             catch (Exception ex)
             {
                 SystemLog_Form.LogMessage(m_txtLog, $"❌ [GetURL] 예외 발생: {ex.Message}");
-                return m_dicData[L9FTP_DataType.NX3URL];
+                return m_dicData[L9DataType.NX3URL];
             }
         }
 

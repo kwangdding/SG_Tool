@@ -15,7 +15,7 @@ namespace SG_Tool.L9_Tool.FTP
         TextBox m_txtLog = null!;
 
         string m_strConfigFile = $@"L9\l9_Data.cfg";
-        Dictionary<L9FTP_DataType, string> m_dicData = new Dictionary<L9FTP_DataType, string>();
+        Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
 
         public DBUpload (EnLoad9_Type enLoad9_Type)
         {
@@ -60,7 +60,7 @@ namespace SG_Tool.L9_Tool.FTP
             };
             m_comboBox.SelectedIndexChanged += ServerChangeList;
 
-            m_txtParameter = SG_Common.CreateLabeledTextBox("패치날짜:", 180, m_dicData.ContainsKey(L9FTP_DataType.DBUpload) ? m_dicData[L9FTP_DataType.DBUpload] : "없음");
+            m_txtParameter = SG_Common.CreateLabeledTextBox("패치날짜:", 180, m_dicData.ContainsKey(L9DataType.DBUpload) ? m_dicData[L9DataType.DBUpload] : "없음");
             m_btnDBUpload = new Button
             {
                 Text = "DBUpload",
@@ -128,11 +128,11 @@ namespace SG_Tool.L9_Tool.FTP
             {
                 SystemLog_Form.LogMessage(m_txtLog, $"[DBUpload()] 다운로드 시작..");
                 // 1. FTP로 파일을 다운로드 받는다. // project-lord/Web/PatchConfig/{strDate}/Operation.ProjectL.Protocol.json
-                var s3Client = new AmazonS3Client(m_dicData[L9FTP_DataType.AwsAccessKey], m_dicData[L9FTP_DataType.AwsSecretKey], RegionEndpoint.APNortheast2);
+                var s3Client = new AmazonS3Client(m_dicData[L9DataType.NX3AwsAccessKey], m_dicData[L9DataType.NX3AwsSecretKey], RegionEndpoint.APNortheast2);
                 var transferUtility = new TransferUtility(s3Client);
                 string strKey = @$"Web_DataTable/{m_txtParameter.Text.Trim()}/DBPlan.db";
                 string strlocalFilePath = @$"{AppDomain.CurrentDomain.BaseDirectory}\DBPlan\{m_txtParameter.Text.Trim()}\DBPlan.db";
-                await SG_Common.DownloadAsyncToS3(m_txtLog, transferUtility, strlocalFilePath, m_dicData[L9FTP_DataType.S3FileBucket], strKey);
+                await SG_Common.DownloadAsyncToS3(m_txtLog, transferUtility, strlocalFilePath, m_dicData[L9DataType.S3FileBucket], strKey);
 
                 if (m_strSelectedServer == string.Empty)
                 {
@@ -140,14 +140,14 @@ namespace SG_Tool.L9_Tool.FTP
                     return;
                 }
 
-                var s3UploadClient = new AmazonS3Client(m_dicData[L9FTP_DataType.AwsAccessKey], m_dicData[L9FTP_DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
+                var s3UploadClient = new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
                 var transferUploadUtility = new TransferUtility(s3UploadClient);
 
                 strKey = @$"{m_strSelectedServer}/InGameTableData/DBPlan.db";
                 SystemLog_Form.LogMessage(m_txtLog, $"[DBUpload()] {strKey}  업로드 시작..");
-                await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9FTP_DataType.S3UploadBucket], strKey);
+                await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9DataType.S3UploadBucket], strKey);
 
-                m_dicData[L9FTP_DataType.DBUpload] = m_txtParameter.Text.Trim();
+                m_dicData[L9DataType.DBUpload] = m_txtParameter.Text.Trim();
                 SG_Common.SaveData(m_txtLog, m_strConfigFile, m_dicData);
                 SystemLog_Form.LogMessage(m_txtLog, $"✅ [DBUpload()] 업로드 완료..");
                 // 다운 받은 DBPlan.db 파일 폴더 삭제
