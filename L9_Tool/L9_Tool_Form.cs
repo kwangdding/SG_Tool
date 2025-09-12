@@ -141,8 +141,8 @@ namespace SG_Tool.L9_Tool
     public class L9_Asia_Tool_Form : UserControl, IActivatableTool
     {
         TabControl m_tabControl;
-        TabPage m_tabServerPatch_QA;
-        TabPage m_tabServerPatch_Live;
+        //TabPage m_tabServerPatch_QA;
+        //TabPage m_tabServerPatch_Live;
         TabPage m_tabJsonUpdate;
         TabPage m_tabDBUpload;
 
@@ -164,13 +164,13 @@ namespace SG_Tool.L9_Tool
             // 각 탭 페이지 생성
             m_tabDBUpload = new TabPage("DB Upload");
             m_tabJsonUpdate = new TabPage("Json Update");
-            m_tabServerPatch_QA = new TabPage("ECS QA");
-            m_tabServerPatch_Live = new TabPage("ECS Live");
+            //m_tabServerPatch_QA = new TabPage("ECS QA");
+            //m_tabServerPatch_Live = new TabPage("ECS Live");
 
             m_tabControl.TabPages.Add(m_tabDBUpload);
             m_tabControl.TabPages.Add(m_tabJsonUpdate);
-            m_tabControl.TabPages.Add(m_tabServerPatch_QA);
-            m_tabControl.TabPages.Add(m_tabServerPatch_Live);
+            //m_tabControl.TabPages.Add(m_tabServerPatch_QA);
+            //m_tabControl.TabPages.Add(m_tabServerPatch_Live);
         }
 
         public void ActivateTool()
@@ -189,16 +189,16 @@ namespace SG_Tool.L9_Tool
                 ctrl.Dispose();
             foreach (Control ctrl in m_tabJsonUpdate.Controls)
                 ctrl.Dispose();
-            foreach (Control ctrl in m_tabServerPatch_QA.Controls)
-                ctrl.Dispose();
-            foreach (Control ctrl in m_tabServerPatch_Live.Controls)
-                ctrl.Dispose();
+            //foreach (Control ctrl in m_tabServerPatch_QA.Controls)
+            //    ctrl.Dispose();
+            //foreach (Control ctrl in m_tabServerPatch_Live.Controls)
+            //    ctrl.Dispose();
 
 
             m_tabDBUpload.Controls.Clear();
             m_tabJsonUpdate.Controls.Clear();
-            m_tabServerPatch_QA.Controls.Clear();
-            m_tabServerPatch_Live.Controls.Clear();
+            //m_tabServerPatch_QA.Controls.Clear();
+            //m_tabServerPatch_Live.Controls.Clear();
             m_tabInitialized[m_lastSelectedIndex] = false;
             Controls.Clear();
         }
@@ -255,12 +255,12 @@ namespace SG_Tool.L9_Tool
                     case 1:
                         m_tabJsonUpdate.Controls.Add(new JsonUpdate(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
                         break;
-                    case 2:
-                        m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
-                        break;
-                    case 3:
-                        m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
-                        break;
+                    //case 2:
+                    //    m_tabServerPatch_QA.Controls.Add(new EcsPatch_QA_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
+                    //    break;
+                    //case 3:
+                    //    m_tabServerPatch_Live.Controls.Add(new EcsPatch_Live_Form(EnLoad9_Type.L9_Asia) { Dock = DockStyle.Fill });
+                    //    break;
                 }
 
                 m_tabInitialized[index] = true;

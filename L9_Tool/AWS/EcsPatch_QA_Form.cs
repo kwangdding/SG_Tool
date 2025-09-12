@@ -337,7 +337,7 @@ namespace SG_Tool.L9_Tool.AWS
                 }
                 catch (Exception ex)
                 {
-                    SG_Common.Log(m_txtLog, $"❌ 오류 발생: {ex.Message}");
+                    SG_Common.Log(m_txtLog, $"❌ [UpdateStatusAsync] 오류 발생: {ex.Message}");
                     break;
                 }
             }

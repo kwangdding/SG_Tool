@@ -19,7 +19,7 @@ namespace SG_Tool
 
         void InitializeComponent()
         {
-            this.Text = "SG_Tool - v1.0.5";
+            this.Text = "SG_Tool - v1.0.9";
             this.Width = 1000;
             this.Height = 900;
             this.MinimumSize = new Size(600, 400);
@@ -51,9 +51,9 @@ namespace SG_Tool
             // 탭 생성
             tabControl.TabPages.Add(new TabPage(" Email") { ImageIndex = 0, Controls = { new Email_Tool_Form { Dock = DockStyle.Fill } } });
             tabControl.TabPages.Add(new TabPage(" 로드나인") { ImageIndex = 1, Controls = { new L9_Tool_Form { Dock = DockStyle.Fill } } });
-            tabControl.TabPages.Add(new TabPage(" 로드나인 아시아") { ImageIndex = 1, Controls = { new L9_Asia_Tool_Form { Dock = DockStyle.Fill } } });
-            tabControl.TabPages.Add(new TabPage(" 아우터플레인") { ImageIndex = 2, Controls = { new OP_Tool_Form { Dock = DockStyle.Fill } } });
-            tabControl.TabPages.Add(new TabPage(" 에픽세븐") { ImageIndex = 3, Controls = { new EP7_Tool_Form { Dock = DockStyle.Fill } } });
+            tabControl.TabPages.Add(new TabPage(" 로드나인 아시아") { ImageIndex = 2, Controls = { new L9_Asia_Tool_Form { Dock = DockStyle.Fill } } });
+            tabControl.TabPages.Add(new TabPage(" 아우터플레인") { ImageIndex = 3, Controls = { new OP_Tool_Form { Dock = DockStyle.Fill } } });
+            tabControl.TabPages.Add(new TabPage(" 에픽세븐") { ImageIndex = 4, Controls = { new EP7_Tool_Form { Dock = DockStyle.Fill } } });
 
 
             // 탭 선택/해제 이벤트 처리

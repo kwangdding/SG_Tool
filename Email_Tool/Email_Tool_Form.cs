@@ -74,7 +74,7 @@ namespace SG_Tool.Email_Tool
             // ÃÊ±â ÅÇ CDN_Purge¸¸ ¹Ì¸® ·Îµù
             m_tabEpic.Controls.Add(new Epic_Form { Dock = DockStyle.Fill });
 
-            m_tabInitialized = new bool[3]; // ÅÇ ¼ö
+            m_tabInitialized = new bool[4]; // ÅÇ ¼ö
             m_tabInitialized[0] = true;
             m_tabControl.SelectedIndex = 0;
 

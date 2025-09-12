@@ -13,12 +13,14 @@ namespace SG_Tool.L9_Tool.FTP
         Button m_btnDBUpload = null!;
         TextBox m_txtParameter = null!;
         TextBox m_txtLog = null!;
+        EnLoad9_Type m_enLoad9_Type = EnLoad9_Type.L9;
 
         string m_strConfigFile = $@"L9\l9_Data.cfg";
         Dictionary<L9DataType, string> m_dicData = new Dictionary<L9DataType, string>();
 
         public DBUpload (EnLoad9_Type enLoad9_Type)
         {
+            m_enLoad9_Type = enLoad9_Type;
             m_strConfigFile = $@"{enLoad9_Type}\L9_Data.cfg";
             InitializeUI();
         }
@@ -140,7 +142,11 @@ namespace SG_Tool.L9_Tool.FTP
                     return;
                 }
 
-                var s3UploadClient = new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
+                var s3UploadClient = m_enLoad9_Type == EnLoad9_Type.L9 ?
+                    new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1) :
+                    new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APEast1);
+
+
                 var transferUploadUtility = new TransferUtility(s3UploadClient);
 
                 strKey = @$"{m_strSelectedServer}/InGameTableData/DBPlan.db";

@@ -1,4 +1,6 @@
-﻿namespace SG_Tool.Email_Tool.Target
+﻿using System.Windows.Forms;
+
+namespace SG_Tool.Email_Tool.Target
 {
     public class Load_Form : UserControl
     {
@@ -12,7 +14,7 @@
         Dictionary<Email_DataType, string> m_dicData = new Dictionary<Email_DataType, string>();
         FlowLayoutPanel[] m_aParamter = new FlowLayoutPanel[]
         {
-            SG_Common.CreateLabeledPanel("작업 내용", 400, "250709 타겟 패치", true, 40)
+            SG_Common.CreateLabeledPanel("작업 내용", 400, "250709 타겟 패치", true, 30)
         };
         List<FlowLayoutPanel> m_listSqlPathPanels = new List<FlowLayoutPanel>();
         List<FlowLayoutPanel> m_listBeforeSQLPanels = new List<FlowLayoutPanel>();
@@ -82,19 +84,19 @@
             m_btnAddBeforeSQL = new Button { Text = "Before", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddBeforeSQL.Click += (s, e) =>
             {
-                AddSqlPathPanel("Before SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\06\20250626_v2\update\mssql\before\DBAccount_tGameNotice_PK_tGameNotice_REBUILD.sql");
+                AddSqlPathPanel("Before SQL", @"\5.DBScript\NX3\2025\06\20250626_v2\update\mssql\before\DBAccount_tGameNotice_PK_tGameNotice_REBUILD.sql");
             };
 
             m_btnAddSqlPath = new Button { Text = "Patch", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddSqlPath.Click += (s, e) =>
             {
-                AddSqlPathPanel("Patch SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\DBAccount_LIVE_UPDATE.sql");
+                AddSqlPathPanel("Patch SQL", @"\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\DBAccount_LIVE_UPDATE.sql");
             };
 
             m_btnAddAfterSQL = new Button { Text = "After", Width = 150, BackColor = Color.LightGreen, Margin = new Padding(5) };
             m_btnAddAfterSQL.Click += (s, e) =>
             {
-                AddSqlPathPanel("After SQL", @"\svn\프로젝트Lord\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\after\DBAccount_tAccountNotify테이블초기화.sql");
+                AddSqlPathPanel("After SQL", @"\5.DBScript\NX3\2025\07\202500730_v1\update\mssql\after\DBAccount_tAccountNotify테이블초기화.sql");
             };
 
             m_txtName = SG_Common.CreateLabeledPanel("이름", 60, m_dicData[Email_DataType.Name], false, 20);
@@ -151,24 +153,34 @@
 
         void AddSqlPathPanel(string strName, string defaultValue)
         {
-            var panel = SG_Common.CreateLabeledPanel(strName, 850, defaultValue, false, 20);
+            //var panel = SG_Common.CreateLabeledPanel(strName, 850, defaultValue, false, 20);
+            var panel = SG_Common.CreateLabeledPanel(strName, 700, defaultValue, true, 100);
             panel.Margin = new Padding(3, 3, 3, 5);
 
             if (strName.Contains("Before"))
             {
+                // 1개만 가능.
+                if (m_listBeforeSQLPanels.Count != 0) return;
+               
                 m_listBeforeSQLPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
                 
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - (m_listBeforeSQLPanels.Count + m_listSqlPathPanels.Count + m_listAfterSQLPanels.Count + 2));
             }
             else if (strName.Contains("Patch"))
-            {
+            {                
+                // 1개만 가능.
+                if (m_listSqlPathPanels.Count != 0) return;
+
                 m_listSqlPathPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - (m_listSqlPathPanels.Count + m_listAfterSQLPanels.Count + 1));
             }
             else
-            {
+            {                
+                // 1개만 가능.
+                if (m_listAfterSQLPanels.Count != 0) return;
+
                 m_listAfterSQLPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - m_listAfterSQLPanels.Count);
@@ -191,11 +203,6 @@
             Email_Tool_Form.SQLData PatchSQL = new Email_Tool_Form.SQLData();
             Email_Tool_Form.SQLData AfterSQL = new Email_Tool_Form.SQLData();
 
-
-            //foreach (var panel in m_aParamter)
-            //{
-            //    strList += $"\t    - {panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text}\r\n";
-            //}
             foreach (var panel in m_aParamter)
             {
                 var lines = panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -205,16 +212,20 @@
                 }
             }
 
+            m_listBeforeSQLPanels.Reverse();
             foreach (var panel in m_listBeforeSQLPanels)
             {
                 BeforeSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);
             }
 
+            m_listSqlPathPanels.Reverse();
             foreach (var panel in m_listSqlPathPanels)
             {
+                SG_Common.Log(m_txtLog, $"PatchSQL : {panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text} ", 1);
                 PatchSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);
             }
 
+            m_listAfterSQLPanels.Reverse();
             foreach (var panel in m_listAfterSQLPanels)
             {
                 AfterSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);

@@ -12,7 +12,7 @@
         Dictionary<Email_DataType, string> m_dicData = new Dictionary<Email_DataType, string>();
         FlowLayoutPanel[] m_aParamter = new FlowLayoutPanel[]
         {
-            SG_Common.CreateLabeledPanel("작업 내용", 400, "250709 타겟 패치", true, 40)
+            SG_Common.CreateLabeledPanel("작업 내용", 400, "250709 타겟 패치", true, 30)
         };
         List<FlowLayoutPanel> m_listSqlPathPanels = new List<FlowLayoutPanel>();
         List<FlowLayoutPanel> m_listBeforeSQLPanels = new List<FlowLayoutPanel>();
@@ -149,26 +149,37 @@
             SetEmail();
         }
 
+       
         void AddSqlPathPanel(string strName, string defaultValue)
         {
-            var panel = SG_Common.CreateLabeledPanel(strName, 850, defaultValue, false, 20);
+            //var panel = SG_Common.CreateLabeledPanel(strName, 850, defaultValue, false, 20);
+            var panel = SG_Common.CreateLabeledPanel(strName, 700, defaultValue, true, 100);
             panel.Margin = new Padding(3, 3, 3, 5);
 
             if (strName.Contains("Before"))
             {
+                // 1개만 가능.
+                if (m_listBeforeSQLPanels.Count != 0) return;
+
                 m_listBeforeSQLPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
-                
+
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - (m_listBeforeSQLPanels.Count + m_listSqlPathPanels.Count + m_listAfterSQLPanels.Count + 2));
             }
             else if (strName.Contains("Patch"))
             {
+                // 1개만 가능.
+                if (m_listSqlPathPanels.Count != 0) return;
+
                 m_listSqlPathPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - (m_listSqlPathPanels.Count + m_listAfterSQLPanels.Count + 1));
             }
             else
             {
+                // 1개만 가능.
+                if (m_listAfterSQLPanels.Count != 0) return;
+
                 m_listAfterSQLPanels.Add(panel);
                 m_flowPanel.Controls.Add(panel);
                 m_flowPanel.Controls.SetChildIndex(panel, m_flowPanel.Controls.Count - m_listAfterSQLPanels.Count);
@@ -201,16 +212,20 @@
                 }
             }
 
+            m_listBeforeSQLPanels.Reverse();
             foreach (var panel in m_listBeforeSQLPanels)
             {
                 BeforeSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);
             }
 
+            m_listSqlPathPanels.Reverse();
             foreach (var panel in m_listSqlPathPanels)
             {
+                SG_Common.Log(m_txtLog, $"PatchSQL : {panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text} ", 1);
                 PatchSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);
             }
 
+            m_listAfterSQLPanels.Reverse();
             foreach (var panel in m_listAfterSQLPanels)
             {
                 AfterSQL.SetSQLData(panel.Controls.OfType<TextBox>().FirstOrDefault()?.Text);

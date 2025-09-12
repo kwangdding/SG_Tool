@@ -148,44 +148,44 @@ namespace SG_Tool.L9_Tool.FTP
 
                 // 2. 다운 로드 받은 파일을 qa0~3, review, live 환경에 맞춰 이름 변경 및 파일 변경 후 저장.
                 string strOld = GetURL(strlocalFilePath);// m_dicData[L9FTP_DataType.NX3URL];
-                string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com";
+                string strNew = m_enLoad9_Type == EnLoad9_Type.L9 ? $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com" : $"https://{m_strSelectedServer}-l9asia-op-api.game.playstove.com";
                 ReplaceJsonUrls(strlocalFilePath, strOld, strNew);
 
                 // 3. 서버 시간조정 파라미터 도메인 변경.
                 strOld = "http://127.0.0.1:55001";
                 if (m_strSelectedServer.Contains("qa1"))
                 {
-                    ReplaceJsonUrls(strlocalFilePath, strOld, "http://10.162.4.56:55001");
+                    ReplaceJsonUrls(strlocalFilePath, strOld, m_enLoad9_Type == EnLoad9_Type.L9 ? "http://10.162.4.56:55001" : "http://10.168.196.7:55001");
                 }
                 else if (m_strSelectedServer.Contains("qa2"))
                 {
-                    ReplaceJsonUrls(strlocalFilePath, strOld, "http://10.168.192.23:55001");
+                    ReplaceJsonUrls(strlocalFilePath, strOld, m_enLoad9_Type == EnLoad9_Type.L9 ? "http://10.168.192.23:55001" : "http://10.168.196.42:55001");
                 }
                 else if (m_strSelectedServer.Contains("qa3"))
                 {
-                    ReplaceJsonUrls(strlocalFilePath, strOld, "http://10.162.4.28:55001");
+                    ReplaceJsonUrls(strlocalFilePath, strOld, m_enLoad9_Type == EnLoad9_Type.L9 ? "http://10.162.4.28:55001" : "http://10.168.197.62:55001");
                 }
                 else
                 {
                     RemoveSpecificKeys(strlocalFilePath); // 서버 시간조정 파라미터 제거.
                 }
-                
-                var s3UploadClient = new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1);
-                var transferUploadUtility = new TransferUtility(s3UploadClient);
 
                 // 4. 파일 s3 환경에 업로드
                 strKey = @$"{m_strSelectedServer}/Operation.ProjectL.Protocol.json";
                 SystemLog_Form.LogMessage(m_txtLog, $"[UploadFileToS3()] {strKey} 업로드 시작..");
+                //SystemLog_Form.LogMessage(m_txtLog, $"[UploadFileToS3()] 테스트중 업로드 안됨...");
+                //return;
+
+                var s3UploadClient = m_enLoad9_Type == EnLoad9_Type.L9 ? 
+                    new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APNortheast1) :
+                    new AmazonS3Client(m_dicData[L9DataType.AwsAccessKey], m_dicData[L9DataType.AwsSecretKey], RegionEndpoint.APEast1);
+
+                var transferUploadUtility = new TransferUtility(s3UploadClient);
                 await SG_Common.UploadAsyncToS3(m_txtLog, transferUploadUtility, strlocalFilePath, m_dicData[L9DataType.S3UploadBucket], strKey);
 
                 m_dicData[L9DataType.JsonUpdate] = m_txtParameter.Text.Trim();
                 SG_Common.SaveData(m_txtLog, m_strConfigFile, m_dicData);
                 SystemLog_Form.LogMessage(m_txtLog, $"✅ [UploadFileToS3] 업로드 완료");
-
-                // 5. 다운 받은 Operation.ProjectL.Protocol.json 파일 폴더 삭제
-                // strlocalFilePath = @$"{AppDomain.CurrentDomain.BaseDirectory}\lordnine-config\{m_txtParameter.Text.Trim()}";
-                // Directory.Delete(strlocalFilePath, recursive: true);
-                // SystemLog_Form.LogMessage(m_txtLog, $"✅ [UploadFileToS3] {strlocalFilePath} 제거 완료");
             }
             catch (Exception ex)
             {
