@@ -303,10 +303,10 @@
                 case "QA2":
                     strTarget = "\t    - QA2 (AccountDB, ShardDB, WorldDB1,2)\r\n\t    - DB IP : 10.168.196.241\r\n";
                     break;
-                case "QA3":
+                case "qa3":
                     strTarget = "\t    - QA3 (AccountDB, ShardDB 1,2, WorldDB 1,2)\r\n\t    - DB IP : lord-asia-q3-gdb-db-01.c9ywe8s2a44v.ap-east-1.rds.amazonaws.com\r\n";
                     break;
-                case "Review":
+                case "REVIEW":
                     strTarget = "\t    - REVIEW(AccountDB, ShardDB, WorldDB)\r\n\t    - DB IP : lord-asia-q3-gdb-db-01.c9ywe8s2a44v.ap-east-1.rds.amazonaws.com\r\n";
                     break;
                 case "Live":
