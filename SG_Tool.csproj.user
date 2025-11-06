@@ -10,6 +10,9 @@
     <Compile Update="Email_Tool\Target\Load.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Email_Tool\Target\LoadAsia.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Email_Tool\Target\Outer.cs">
       <SubType>UserControl</SubType>
     </Compile>

@@ -153,7 +153,7 @@ namespace SG_Tool.L9_Tool.FTP
                 string strNew = $"https://{m_strSelectedServer}-lord-op-api.game.playstove.com";
 
                 // 아시아 서버 review는 re 약어로 URL 예외적 사용.
-                if (m_enLoad9_Type != EnLoad9_Type.L9)
+                if (m_enLoad9_Type == EnLoad9_Type.L9_Asia)
                 {
                     strNew = m_strSelectedServer == "review" ? "https://re-l9asia-op-api.game.playstove.com" : $"https://{m_strSelectedServer}-l9asia-op-api.game.playstove.com";
                 }

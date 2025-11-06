@@ -93,13 +93,13 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             m_btnLogDown = SG_Common.GetButton("서버다운(로그다운)", Color.AliceBlue, 150);
             m_btnLogDown.Click += LogServerDown_Click;
 
-            m_btnUp = SG_Common.GetButton("서버업", Color.AliceBlue);
+            m_btnUp = SG_Common.GetButton("서버업", Color.AntiqueWhite);
             m_btnUp.Click += ServerUp_Click;
 
             m_btnDockerCheck = SG_Common.GetButton("모니터링", Color.AliceBlue);
             m_btnDockerCheck.Click += Monitoring_Click;
 
-            m_btnRollingPatch = SG_Common.GetButton("롤링패치", Color.AliceBlue);
+            m_btnRollingPatch = SG_Common.GetButton("롤링패치", Color.AntiqueWhite);
             m_btnRollingPatch.Click += RollingPatch_Click;
 
             m_flowPanel.Controls.AddRange(new Control[] {m_btnDown, m_btnLogDown, m_btnUp, m_btnDockerCheck, m_btnRollingPatch});
@@ -482,7 +482,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             }   
         }
         
-        List<Task> GetTaskList (ButtonType buttonType, bool bLogDown = false) //1 정지, 리셋 2 시작, 3 모니터링
+        List<Task> GetTaskList (ButtonType buttonType, bool bLogDown = false) //1 정지, 리셋 2 시작, 3 모니터링, 4. 롤링스타
         {
             var selectedTags = m_checkRegionPanel.Controls.OfType<FlowLayoutPanel>()
                     .SelectMany(panel => panel.Controls.OfType<CheckBox>())

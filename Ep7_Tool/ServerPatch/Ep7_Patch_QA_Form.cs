@@ -81,7 +81,8 @@ namespace SG_Tool.EP7_Tool.ServerPatch
         Button m_btnUp = null!;
         Button m_btnDockerCheck = null!;
         Button m_btnRolling = null!;
-        Button m_btnCDN = null!;
+        //Button m_btnCDN = null!;
+
         TextBox m_txtLog = null!;
         ComboBox m_cmbServerList = null!;
         Label m_lblServerSelect = null!;
@@ -179,10 +180,11 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             m_btnRolling = SG_Common.GetButton("롤링(star)", Color.AliceBlue);
             m_btnRolling.Click += Rolling_Click;
 
-            m_btnCDN = SG_Common.GetButton("롤링(star)", Color.AliceBlue);
-            m_btnCDN.Click += CDN_Click;
+            //m_btnCDN = SG_Common.GetButton("CDN 업로드", Color.AliceBlue);
+            //m_btnCDN.Click += CDN_Click;
 
-            m_flowPanel.Controls.AddRange(new Control[] { m_btnUp, m_btnDockerCheck, m_btnRolling, m_btnCDN });
+            m_flowPanel.Controls.AddRange(new Control[] { m_btnUp, m_btnDockerCheck, m_btnRolling, });
+            //m_flowPanel.Controls.AddRange(new Control[] { m_btnUp, m_btnDockerCheck, m_btnRolling, m_btnCDN });
 
             // 로그 영역
             m_txtLog = new TextBox
@@ -329,13 +331,13 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             LogMessage($"도커확인 종료", 1);
         }
 
-        void CDN_Click(object? sender, EventArgs e)
-        {
-            if (SG_Common.ClickCheck(m_txtLog, "SVN 업로드 후 S3 업로드", m_userData.IsConnect))
-                SVNUPdateAndUploadFileToS3();
+        //void CDN_Click(object? sender, EventArgs e)
+        //{
+        //    if (SG_Common.ClickCheck(m_txtLog, "SVN 업로드 후 S3 업로드", m_userData.IsConnect))
+        //        SVNUPdateAndUploadFileToS3();
 
-            LogMessage($"SVN 업로드 후 S3 업로드 종료", 1);
-        }
+        //    LogMessage($"SVN 업로드 후 S3 업로드 종료", 1);
+        //}
         //===========================================================================================
         async Task ExecuteOnServersAsync(string scriptName, EnType enType)
         {
@@ -609,86 +611,86 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             return false;
         }
 
-        void SVNUPdateAndUploadFileToS3()
-        {
-            try
-            {
-                string svnPath = "";
-                string s3Bucket = "";
-                string s3Key = "";
-                LogMessage($"============ [AutoSvnUpdate] SVN 업데이트 시작: {svnPath} ============");
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "svn",
-                    Arguments = $"update \"{svnPath}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+        //void SVNUPdateAndUploadFileToS3()
+        //{
+        //    try
+        //    {
+        //        string svnPath = "";
+        //        string s3Bucket = "";
+        //        string s3Key = "";
+        //        LogMessage($"============ [AutoSvnUpdate] SVN 업데이트 시작: {svnPath} ============");
+        //        var psi = new ProcessStartInfo
+        //        {
+        //            FileName = "svn",
+        //            Arguments = $"update \"{svnPath}\"",
+        //            RedirectStandardOutput = true,
+        //            RedirectStandardError = true,
+        //            UseShellExecute = false,
+        //            CreateNoWindow = true
+        //        };
 
-                using var process = Process.Start(psi);
-                if (process == null)
-                {
-                    LogMessage("[AutoSvnUpdate ERROR] 프로세스 실행 실패.");
-                    return;
-                }
+        //        using var process = Process.Start(psi);
+        //        if (process == null)
+        //        {
+        //            LogMessage("[AutoSvnUpdate ERROR] 프로세스 실행 실패.");
+        //            return;
+        //        }
 
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+        //        string output = process.StandardOutput.ReadToEnd();
+        //        string error = process.StandardError.ReadToEnd();
+        //        process.WaitForExit();
 
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    LogMessage($"[AutoSvnUpdate ERROR] {error}");
-                    return;
-                }
+        //        if (!string.IsNullOrWhiteSpace(error))
+        //        {
+        //            LogMessage($"[AutoSvnUpdate ERROR] {error}");
+        //            return;
+        //        }
 
-                if (string.IsNullOrWhiteSpace(output))
-                {
-                    LogMessage("[AutoSvnUpdate] 변경 사항 없음. S3 업데이트 생략.");
-                    return;
-                }
+        //        if (string.IsNullOrWhiteSpace(output))
+        //        {
+        //            LogMessage("[AutoSvnUpdate] 변경 사항 없음. S3 업데이트 생략.");
+        //            return;
+        //        }
 
-                LogMessage($"[AutoSvnUpdate] 업데이트 결과:\n{output}");
+        //        LogMessage($"[AutoSvnUpdate] 업데이트 결과:\n{output}");
 
-                // 업데이트
-                string localFilePath = Path.Combine(svnPath, "");
+        //        // 업데이트
+        //        string localFilePath = Path.Combine(svnPath, "");
 
-                // ✅ SVN 업데이트 후 S3 업로드
-                UploadFileToS3(localFilePath, s3Bucket, s3Key).Wait();
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"[AutoSvnUpdate ERROR] 예외 발생: {ex.Message}");
-            }
-        }
+        //        // ✅ SVN 업데이트 후 S3 업로드
+        //        UploadFileToS3(localFilePath, s3Bucket, s3Key).Wait();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogMessage($"[AutoSvnUpdate ERROR] 예외 발생: {ex.Message}");
+        //    }
+        //}
         
-        async Task UploadFileToS3(string directory, string bucket, string prefix)
-        {
-            try
-            {
-                string accessKey = "";
-                string secretKey = "";
-                LogMessage($"[S3 Upload] {directory} → s3://{bucket}/{prefix}");
-                var files = Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories);
-                using var s3Client = new AmazonS3Client(accessKey, secretKey, RegionEndpoint.APNortheast2);
-                var transferUtility = new TransferUtility(s3Client);
+        //async Task UploadFileToS3(string directory, string bucket, string prefix)
+        //{
+        //    try
+        //    {
+        //        string accessKey = "";
+        //        string secretKey = "";
+        //        LogMessage($"[S3 Upload] {directory} → s3://{bucket}/{prefix}");
+        //        var files = Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories);
+        //        using var s3Client = new AmazonS3Client(accessKey, secretKey, RegionEndpoint.APNortheast2);
+        //        var transferUtility = new TransferUtility(s3Client);
 
-                foreach (var filePath in files)
-                {
-                    var relativePath = SG_Common.GetRelativePath(directory, filePath).Replace("\\", "/"); // S3 호환 경로
-                    var key = $"{prefix.TrimEnd('/')}/{relativePath}";
+        //        foreach (var filePath in files)
+        //        {
+        //            var relativePath = SG_Common.GetRelativePath(directory, filePath).Replace("\\", "/"); // S3 호환 경로
+        //            var key = $"{prefix.TrimEnd('/')}/{relativePath}";
 
-                    Console.WriteLine($"[S3 Upload] {filePath} → s3://{bucket}/{key}");
-                    await transferUtility.UploadAsync(filePath, bucket, key);
-                }
-                LogMessage("[S3 Upload] 업로드 완료!");
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"[S3 Upload ERROR] {ex.Message}");
-            }            
-        }
+        //            Console.WriteLine($"[S3 Upload] {filePath} → s3://{bucket}/{key}");
+        //            await transferUtility.UploadAsync(filePath, bucket, key);
+        //        }
+        //        LogMessage("[S3 Upload] 업로드 완료!");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogMessage($"[S3 Upload ERROR] {ex.Message}");
+        //    }            
+        //}
     }
 }

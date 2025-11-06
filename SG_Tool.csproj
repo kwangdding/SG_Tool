@@ -2,8 +2,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
 	  <ApplicationIcon>icon.ico</ApplicationIcon>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <!-- <TargetFrameworks>net48</TargetFrameworks>   -->
+    <!--<TargetFramework>net9.0-windows</TargetFramework>-->
+    <TargetFrameworks>net48</TargetFrameworks>
 	  <UseWindowsForms>true</UseWindowsForms>
 	  <LangVersion>latest</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
