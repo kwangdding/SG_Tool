@@ -283,8 +283,6 @@ namespace SG_Tool.OP_Tool.ServerPatch
                 await ExecuteOnServersAsync(@"docker ps --format ""@{{.Image}}, {{.RunningFor}}""", EnCommandType.Command);
         }
 
-
-        int nCurrent_size = 0;
         async void UserCheck_Click(object sender, EventArgs e)
         {
             var today = DateTime.Now.ToString("yyyy-MM-dd");

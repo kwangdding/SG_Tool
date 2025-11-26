@@ -2,9 +2,7 @@
 using SG_Tool.EP7_Tool;
 using SG_Tool.L9_Tool;
 using SG_Tool.Log;
-using SG_Tool.OP_Tool;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 
 namespace SG_Tool
 {
@@ -19,7 +17,7 @@ namespace SG_Tool
 
         void InitializeComponent()
         {
-            this.Text = "SG_Tool - v1.0.10";
+            this.Text = "SG_Tool - v1.0.14";
             this.Width = 1000;
             this.Height = 900;
             this.MinimumSize = new Size(600, 400);

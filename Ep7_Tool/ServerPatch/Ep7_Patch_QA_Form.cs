@@ -454,7 +454,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
         async Task ExecuteOnStartAsync(CommandData commandData)
         {
-            await SG_Common.AwaitWithPeriodicLog(m_txtLog, SG_Common.CommandServersAsync(commandData.Ip, commandData.Command, commandData.Tag, commandData.TextBox, m_userData.User, m_userData.Pass, EnCommandType.Scripts), commandData.Tag, commandData.Type.ToString());
+            await SG_Common.CommandServersAsync(commandData.Ip, commandData.Command, commandData.Tag, m_txtLog, m_userData.User, m_userData.Pass, EnCommandType.Scripts);
         }
 
         //===========================================================================================

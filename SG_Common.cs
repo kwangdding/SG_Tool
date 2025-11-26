@@ -2,9 +2,14 @@
 using Amazon.ECS;
 using Amazon.ECS.Model;
 using Amazon.S3.Transfer;
+
 using Renci.SshNet;
+using Renci.SshNet.Common;
+
 using SG_Tool.Log;
 using System.Net.NetworkInformation;
+using System.Text;
+
 #if NET48
 using Outlook = Microsoft.Office.Interop.Outlook;
 #endif
@@ -154,6 +159,30 @@ namespace SG_Tool
             return txt;
         }
 
+        public static TextBox GetLogBox(TabControl tabLogs, string serverIp)
+        {
+            // TextBox 생성
+            TextBox txt = new TextBox
+            {
+                Multiline = true,
+                Dock = DockStyle.Fill,
+                ScrollBars = ScrollBars.Vertical,
+                Font = new Font("Consolas", 8),
+                BackColor = Color.Black,
+                ForeColor = Color.LightGreen
+            };
+
+            // TabPage 생성
+            var tab = new TabPage(serverIp);
+            tab.Controls.Add(txt);
+
+            // TabControl에 추가
+            tabLogs.TabPages.Add(tab);
+
+            // 사전에 저장
+            return txt;
+        }
+
         #region EP7 & OP
         public static UserData LoadCredentials(TextBox txtLog, EnProjectType enProjectType)
         {
@@ -242,94 +271,192 @@ namespace SG_Tool
             }
         }
 
+        //public static async Task CommandServersAsync2(string strServerIp, string strCommand, string strTag, TextBox txtLog, string strUser, string strPass, EnCommandType CommandType)
+        //{
+        //    try
+        //    {
+        //        await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
+
+        //        var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
+
+        //        string strResult = cmd.Result;
+
+        //        switch(CommandType)
+        //        {
+        //            case EnCommandType.Command:
+        //                var lines = strResult.Split('@');
+        //                for (int i = 0; i < lines.Length; i++)
+        //                {
+        //                    if (i == 0) continue;
+        //                    if (lines[i] == "")
+        //                    {
+        //                        Log(txtLog, $"🔹 {strTag,-15} : 실행 중 Docker 없습니다.");
+        //                    }
+        //                    else
+        //                    {
+        //                        var Parts = lines[i].Split('/');
+        //                        var Dockers = Parts[Parts.Length - 1].Split(':', ',');
+        //                        Log(txtLog, $"🔹 {strTag,-15} : {Dockers[0],-13} : {Dockers[1],-11} : {Dockers[2],12}");
+        //                    }
+        //                }
+        //                break;
+        //            case EnCommandType.UserCheck:
+        //                var UserChecklines = strResult.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
+        //                int nCurrentSize = int.Parse(UserChecklines[0]);
+        //                Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 유저접근 상태 확인중 5초 소요.... {nCurrentSize}");
+
+        //                await Task.Delay(5000); // 5초 지연.
+        //                var cmd2 = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
+        //                var UserChecklines2 = cmd2.Result.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
+        //                int nCurrentSize2 = int.Parse(UserChecklines2[0]);
+
+        //                if (nCurrentSize < nCurrentSize2)
+        //                {
+        //                    Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 게임서버 유저접근 확인됩니다. {nCurrentSize} >> {nCurrentSize2}");
+        //                }
+        //                else
+        //                {
+        //                    Log(txtLog, $"❌ 실행 결과 : {strTag,-20} 게임서버 유저접근 없습니다.  {nCurrentSize} == {nCurrentSize2}");
+        //                }
+        //                break;
+        //            case EnCommandType.Monitoring:
+        //                var Monitoringlines = strResult.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+        //                for (int i = 1; i < Monitoringlines.Length; i++)
+        //                {
+        //                    var Parts = Monitoringlines[i].Split(' ');
+        //                    if (Parts.Length == 2)
+        //                    {
+        //                        Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}");
+        //                    }
+        //                }
+        //                break;
+        //            case EnCommandType.Scripts:
+        //                if (strResult.Contains("inacrive"))
+        //                {
+        //                    Log(txtLog, $"🔹시간 변경 확인 재시도", 1);
+        //                    cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
+        //                }
+        //                else
+        //                {
+        //                    if (strCommand.Contains("pullUp_") || strCommand.Contains("removeDown"))
+        //                    {
+        //                        Result(txtLog, strCommand, cmd.Result, strTag);
+        //                    }
+        //                    else if (strCommand.Contains("oneCommand_") || strCommand.Contains("allTogether_Up") || strCommand.Contains("allTogether_Restart"))
+        //                    {
+        //                        if (strResult.Contains("inacrive"))
+        //                        {
+        //                            Log(txtLog, $"❌ 시간 변경 확인 재시도", 1);
+        //                            cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
+        //                        }
+        //                        else
+        //                        {
+        //                            Result(txtLog, strCommand, strResult, strTag);
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        Log(txtLog, $"🔹 실행 결과 : {strTag,-15} {strCommand}\r\n{strResult}");
+        //                    }
+        //                }
+        //                break;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Log(txtLog, $"❌ {strTag,-15} {strServerIp,-15} 실행 중 오류 발생: {ex.Message}");
+        //    }
+        //}
+
+
         public static async Task CommandServersAsync(string strServerIp, string strCommand, string strTag, TextBox txtLog, string strUser, string strPass, EnCommandType CommandType)
         {
             try
             {
+                        //Log(txtLog, $"🔹 Start Command(01) : {strTag,-13} {strCommand}");
+
+                        // 연결 확인.
                 await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
 
-                var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-                string strResult = cmd.Result;
-
-                switch(CommandType)
+                if (CommandType == EnCommandType.Command) // QA 전용.
                 {
-                    case EnCommandType.Command:
-                        var lines = strResult.Split('@');
-                        for (int i = 0; i < lines.Length; i++)
+                    var cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
+                    string strResult = cmd.Result;
+                    var lines = strResult.Split('@');
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        if (i == 0) continue;
+                        if (lines[i] == "")
                         {
-                            if (i == 0) continue;
-                            if (lines[i] == "")
-                            {
-                                Log(txtLog, $"🔹 {strTag,-15} : 실행 중 Docker 없습니다.");
-                            }
-                            else
-                            {
-                                var Parts = lines[i].Split('/');
-                                var Dockers = Parts[Parts.Length - 1].Split(':', ',');
-                                Log(txtLog, $"🔹 {strTag,-15} : {Dockers[0],-13} : {Dockers[1],-11} : {Dockers[2],12}");
-                            }
-                        }
-                        break;
-                    case EnCommandType.UserCheck:
-                        var UserChecklines = strResult.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
-                        int nCurrentSize = int.Parse(UserChecklines[0]);
-                        Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 유저접근 상태 확인중 5초 소요.... {nCurrentSize}");
-
-                        await Task.Delay(5000); // 5초 지연.
-                        var cmd2 = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-                        var UserChecklines2 = cmd2.Result.Split('/', (char)StringSplitOptions.RemoveEmptyEntries);
-                        int nCurrentSize2 = int.Parse(UserChecklines2[0]);
-
-                        if (nCurrentSize < nCurrentSize2)
-                        {
-                            Log(txtLog, $"🔹 실행 결과 : {strTag,-20} 게임서버 유저접근 확인됩니다. {nCurrentSize} >> {nCurrentSize2}");
+                            Log(txtLog, $"🔹 {strTag,-15} : 실행 중 Docker 없습니다.");
                         }
                         else
                         {
-                            Log(txtLog, $"❌ 실행 결과 : {strTag,-20} 게임서버 유저접근 없습니다.  {nCurrentSize} == {nCurrentSize2}");
+                            var Parts = lines[i].Split('/');
+                            var Dockers = Parts[Parts.Length - 1].Split(':', ',');
+                            Log(txtLog, $"🔹 {strTag,-15} : {Dockers[0],-13} : {Dockers[1],-11} : {Dockers[2],12}");
                         }
-                        break;
-                    case EnCommandType.Monitoring:
-                        var Monitoringlines = strResult.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                        for (int i = 1; i < Monitoringlines.Length; i++)
+                    }
+                }
+                else
+                {
+                    Log(txtLog, $"🔹 Start Command : {strTag,-13} {CommandType}");
+
+                    var cmd = m_dicServer[strServerIp].CreateCommand(strCommand);
+                    var asyncResult = cmd.BeginExecute();
+                    var reader = new StreamReader(cmd.OutputStream);
+
+                    while (!asyncResult.IsCompleted)
+                    {
+                        string line = reader.ReadLine();
+                        if (!string.IsNullOrEmpty(line))
                         {
-                            var Parts = Monitoringlines[i].Split(' ');
-                            if (Parts.Length == 2)
+                            //Log(txtLog, line);
+                            switch (CommandType)
                             {
-                                Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}");
+                                case EnCommandType.Command:
+                                    break;
+                                case EnCommandType.UserCheck:  // OP 전용.
+                                    break;
+                                case EnCommandType.Monitoring:
+                                    var Parts = line.Split(' ');
+                                    if (Parts.Length == 2)
+                                    {
+                                        Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}");
+                                    }
+                                    break;
+                                case EnCommandType.Scripts:
+
+                                    Log(txtLog, line);
+
+                                    if (line.Contains("inacrive"))
+                                    {
+                                        Log(txtLog, $"🔹시간 변경 확인 재시도 해주세요.", 1);
+                                        try { cmd.CancelAsync(); } catch { }
+                                    }
+                                    //else
+                                    //{
+                                    //    if (strCommand.Contains("pullUp_") || strCommand.Contains("removeDown"))
+                                    //    {
+                                    //        Result(txtLog, strCommand, cmd.Result, strTag);
+                                    //    }
+                                    //    else if (strCommand.Contains("oneCommand_") || strCommand.Contains("allTogether_Up") || strCommand.Contains("allTogether_Restart"))
+                                    //    {
+                                    //        Result(txtLog, strCommand, line, strTag);
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        Log(txtLog, $"🔹 실행 결과 : {strTag,-15} {strCommand}\r\n{line}");
+                                    //    }
+                                    //}
+                                    break;
                             }
+
+                            await Task.Delay(30);
                         }
-                        break;
-                    case EnCommandType.Scripts:
-                        if (strResult.Contains("inacrive"))
-                        {
-                            Log(txtLog, $"🔹시간 변경 확인 재시도", 1);
-                            cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-                        }
-                        else
-                        {
-                            if (strCommand.Contains("pullUp_") || strCommand.Contains("removeDown"))
-                            {
-                                Result(txtLog, strCommand, cmd.Result, strTag);
-                            }
-                            else if (strCommand.Contains("oneCommand_") || strCommand.Contains("allTogether_Up") || strCommand.Contains("allTogether_Restart"))
-                            {
-                                if (strResult.Contains("inacrive"))
-                                {
-                                    Log(txtLog, $"❌ 시간 변경 확인 재시도", 1);
-                                    cmd = await Task.Run(() => m_dicServer[strServerIp].RunCommand(strCommand));
-                                }
-                                else
-                                {
-                                    Result(txtLog, strCommand, strResult, strTag);
-                                }
-                            }
-                            else
-                            {
-                                Log(txtLog, $"🔹 실행 결과 : {strTag,-15} {strCommand}\r\n{strResult}");
-                            }
-                        }
-                        break;
+
+                    }
+                    Log(txtLog, $"🔹 Finish Command : {CommandType} 실행 종료");
                 }
             }
             catch (Exception ex)
@@ -338,36 +465,36 @@ namespace SG_Tool
             }
         }
 
-        public static async Task AwaitWithPeriodicLog(TextBox txtLog, Task task, string tag, string operation, int intervalMilliseconds = 20000)
-        {
-            using (var cts = new CancellationTokenSource())
-            {
-                int timeoutMilliseconds = 120000; // 타임아웃 2분
-                var logTask = Task.Run(async () =>
-                {
-                    while (!cts.Token.IsCancellationRequested)
-                    {
-                        await Task.Delay(intervalMilliseconds, cts.Token);
-                        Log(txtLog, $"[대기중] {tag} : {operation} 실행중...");
-                    }
-                }, cts.Token);
+        //public static async Task AwaitWithPeriodicLog(TextBox txtLog, Task task, string tag, string operation, int intervalMilliseconds = 20000)
+        //{
+        //    using (var cts = new CancellationTokenSource())
+        //    {
+        //        int timeoutMilliseconds = 120000; // 타임아웃 2분
+        //        var logTask = Task.Run(async () =>
+        //        {
+        //            while (!cts.Token.IsCancellationRequested)
+        //            {
+        //                await Task.Delay(intervalMilliseconds, cts.Token);
+        //                Log(txtLog, $"[대기중] {tag} : {operation} 실행중...");
+        //            }
+        //        }, cts.Token);
 
-                var timeoutTask = Task.Delay(timeoutMilliseconds); // 타임아웃 Task
-                var completedTask = await Task.WhenAny(task, timeoutTask);
+        //        var timeoutTask = Task.Delay(timeoutMilliseconds); // 타임아웃 Task
+        //        var completedTask = await Task.WhenAny(task, timeoutTask);
 
-                if (completedTask == timeoutTask) // 타임아웃 발생
-                {
-                    Log(txtLog, $"{tag} : {operation}  타임아웃 (대기 시간 {timeoutMilliseconds}ms 초과)", 1);
-                }
-                else
-                {
-                    await task; // 작업 완료된 경우, 혹은 예외 발생 시 await로 처리
-                }
+        //        if (completedTask == timeoutTask) // 타임아웃 발생
+        //        {
+        //            Log(txtLog, $"{tag} : {operation}  타임아웃 (대기 시간 {timeoutMilliseconds}ms 초과)", 1);
+        //        }
+        //        else
+        //        {
+        //            await task; // 작업 완료된 경우, 혹은 예외 발생 시 await로 처리
+        //        }
 
-                cts.Cancel(); // 완료 시 타이머 취소
-                await Task.Delay(1000);
-            }
-        }
+        //        cts.Cancel(); // 완료 시 타이머 취소
+        //        await Task.Delay(1000);
+        //    }
+        //}
 
         public static async void CountDownStart(TextBox txtLog, UserData userData, int nMinutes)
         {
