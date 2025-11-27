@@ -1,4 +1,5 @@
 using Amazon.Runtime.Internal.Transform;
+using Amazon.S3;
 using SG_Tool.Log;
 
 namespace SG_Tool.EP7_Tool.ServerPatch
@@ -49,7 +50,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             { "match_start", "y | sh /home/techpm/scripts/remoteDistribute/allTogether_Up_match.sh" },
             { "json_tsv_start", "y | sh /home/techpm/scripts/remoteDistribute/allTogether_Restart_json_tsv.sh" },
             { "monitoring", "sh /home/techpm/scripts/remoteDistribute/allTogether_Tool_Monitoring.sh" },
-            { "rolling_star", "sh /home/techpm/scripts/remoteDistribute/rolling_star.sh" }
+            { "rolling_star", "y | sh /home/techpm/scripts/remoteDistribute/rolling_star.sh" }
         };
 
 //===========================================================================================
@@ -123,7 +124,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             {
                 Dock = DockStyle.Fill
             };
-            m_dicLogBox.Add("0", SG_Common.GetLogBox(m_tabLogs, "Common"));
+            m_dicLogBox.Add("0", SG_Common.GetLogBox(m_tabLogs, "EP7_Live"));
             leftLayout.Controls.Add(m_flowPanel);
             leftLayout.Controls.Add(m_tabLogs);
 
@@ -227,7 +228,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
 
                         if (!m_dicLogBox.ContainsKey(ip))
                         {
-                            m_dicLogBox.Add(ip, SG_Common.GetLogBox(m_tabLogs, checkRegionBox.Text));
+                            m_dicLogBox.Add(ip, SG_Common.GetLogBox(m_tabLogs, $"EP7_{checkRegionBox.Text}"));
                         }
                         else
                         {

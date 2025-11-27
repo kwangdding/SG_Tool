@@ -83,6 +83,7 @@ namespace SG_Tool.L9_Tool.FTP
             // 로그 영역
             m_txtLog = new TextBox
             {
+                Name = "L9",
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Font = new Font("Consolas", 9),

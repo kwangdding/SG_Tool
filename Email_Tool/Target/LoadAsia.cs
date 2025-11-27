@@ -112,6 +112,7 @@
             // (3) 로그 TextBox - 자동 스크롤, Dock으로 확장
             m_txtLog = new TextBox
             {
+                Name = "Email",
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Font = new Font("Consolas", 8),

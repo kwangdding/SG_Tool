@@ -55,16 +55,19 @@ namespace SG_Tool.EP7_Tool.CDN
             };
             m_btRunButton.Click += new EventHandler(RunAkamaiPurge);
 
-            m_txtLog = new TextBox
-            {
-                Multiline = true,
-                Width = 950,
-                Height = 750,
-                Location = new Point(20, 170),
-                ScrollBars = ScrollBars.Vertical,
-                Font = new Font("Consolas", 8), // 폰트 사이즈 줄이기
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
-            };
+            // 로그 영역
+            m_txtLog = SG_Common.GetLogBox(null, "EP7_CDN");
+            //m_txtLog = new TextBox
+            //{
+            //    Name = "EP7_CDN",
+            //    Multiline = true,
+            //    Width = 950,
+            //    Height = 750,
+            //    Location = new Point(20, 170),
+            //    ScrollBars = ScrollBars.Vertical,
+            //    Font = new Font("Consolas", 8), // 폰트 사이즈 줄이기
+            //    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            //};
 
             // UI 중앙 배치
             TableLayoutPanel layout = new TableLayoutPanel

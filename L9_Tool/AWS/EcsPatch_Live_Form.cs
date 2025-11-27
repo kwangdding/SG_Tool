@@ -1,9 +1,10 @@
-using SG_Tool.Log;
 using Amazon;
 using Amazon.ECS;
 using Amazon.ECS.Model;
+using Amazon.S3;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SG_Tool.Log;
 
 namespace SG_Tool.L9_Tool.AWS
 {
@@ -87,6 +88,7 @@ namespace SG_Tool.L9_Tool.AWS
             // 로그 영역
             m_txtLog = new TextBox
             {
+                Name = "L9",
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Font = new Font("Consolas", 9),

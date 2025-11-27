@@ -17,7 +17,7 @@ namespace SG_Tool
 
         void InitializeComponent()
         {
-            this.Text = "SG_Tool - v1.0.14";
+            this.Text = "SG_Tool - v1.0.15";
             this.Width = 1000;
             this.Height = 900;
             this.MinimumSize = new Size(600, 400);

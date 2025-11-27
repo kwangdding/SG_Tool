@@ -102,6 +102,7 @@ namespace SG_Tool.Email_Tool.Target
 
             m_txtLog = new TextBox
             {
+                Name = "Email",
                 Multiline = true,
                 Width = 970,
                 Height = 400,

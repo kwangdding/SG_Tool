@@ -8,7 +8,6 @@ using Renci.SshNet.Common;
 
 using SG_Tool.Log;
 using System.Net.NetworkInformation;
-using System.Text;
 
 #if NET48
 using Outlook = Microsoft.Office.Interop.Outlook;
@@ -159,11 +158,12 @@ namespace SG_Tool
             return txt;
         }
 
-        public static TextBox GetLogBox(TabControl tabLogs, string serverIp)
+        public static TextBox GetLogBox(TabControl tabLogs, string strRegion)
         {
             // TextBox 생성
             TextBox txt = new TextBox
             {
+                Name = strRegion,
                 Multiline = true,
                 Dock = DockStyle.Fill,
                 ScrollBars = ScrollBars.Vertical,
@@ -173,11 +173,15 @@ namespace SG_Tool
             };
 
             // TabPage 생성
-            var tab = new TabPage(serverIp);
+            var tab = new TabPage(strRegion);
             tab.Controls.Add(txt);
 
-            // TabControl에 추가
-            tabLogs.TabPages.Add(tab);
+            if (tabLogs != null)
+            {            
+                // TabControl에 추가
+                tabLogs.TabPages.Add(tab);
+            }
+
 
             // 사전에 저장
             return txt;
@@ -373,9 +377,9 @@ namespace SG_Tool
         {
             try
             {
-                        //Log(txtLog, $"🔹 Start Command(01) : {strTag,-13} {strCommand}");
+                //Log(txtLog, $"🔹 Start Command(01) : {strTag,-13} {strCommand}");
 
-                        // 연결 확인.
+                // 연결 확인.
                 await ConnectServersAsync(strServerIp, txtLog, false, strTag, strUser, strPass);
 
                 if (CommandType == EnCommandType.Command) // QA 전용.
@@ -422,14 +426,14 @@ namespace SG_Tool
                                     var Parts = line.Split(' ');
                                     if (Parts.Length == 2)
                                     {
-                                        Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}");
+                                        Log(txtLog, $"🔹 {Parts[0].Trim(),-25} : {Parts[1].Trim(),-11}", 2);
                                     }
                                     break;
                                 case EnCommandType.Scripts:
 
-                                    Log(txtLog, line);
+                                    Log(txtLog, line, 2);
 
-                                    if (line.Contains("inacrive"))
+                                    if (line.Contains("inacrive")) // QA 시간 변경시 발생.
                                     {
                                         Log(txtLog, $"🔹시간 변경 확인 재시도 해주세요.", 1);
                                         try { cmd.CancelAsync(); } catch { }
@@ -452,7 +456,7 @@ namespace SG_Tool
                                     break;
                             }
 
-                            await Task.Delay(30);
+                            await Task.Delay(50);
                         }
 
                     }

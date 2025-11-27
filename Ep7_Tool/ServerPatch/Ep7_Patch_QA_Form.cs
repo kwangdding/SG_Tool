@@ -1,8 +1,4 @@
 using SG_Tool.Log;
-using System.Diagnostics;
-using Amazon;
-using Amazon.S3;
-using Amazon.S3.Transfer;
 
 namespace SG_Tool.EP7_Tool.ServerPatch
 {
@@ -187,13 +183,7 @@ namespace SG_Tool.EP7_Tool.ServerPatch
             //m_flowPanel.Controls.AddRange(new Control[] { m_btnUp, m_btnDockerCheck, m_btnRolling, m_btnCDN });
 
             // 로그 영역
-            m_txtLog = new TextBox
-            {
-                Multiline = true,
-                Dock = DockStyle.Fill,
-                ScrollBars = ScrollBars.Vertical,
-                Font = new Font("Consolas", 8)
-            };
+            m_txtLog = SG_Common.GetLogBox(null, "EP7_QA");
 
             // 체크박스 패널 (오른쪽)
             m_checkBoxPanel = new FlowLayoutPanel
